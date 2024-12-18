@@ -49,10 +49,7 @@ class Token:
     def string(self, orders):
         output = self.name + " {"
         if self.name in orders.keys():
-            if (
-                "preserve_order" not in self.members.keys()
-                or self.members["preserve_order"] != "true"
-            ):
+            if "preserve_order" not in self.members.keys() or self.members["preserve_order"] != "true":
                 self.order = orders[self.name]
 
         for key in self.order:
