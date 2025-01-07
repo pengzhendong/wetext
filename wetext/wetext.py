@@ -60,12 +60,13 @@ class Normalizer:
 
     def verbalize(self, text, lang=None):
         lang = lang or self.lang
-        text = TokenParser(self.operator).reorder(text)
+        text = TokenParser(lang, self.operator).reorder(text)
         return self.verbalizers[lang](text)
 
     def normalize(self, text):
         if bool(re.search(r"\d", text)):
-            if self.lang == "auto":
+            lang = self.lang
+            if lang == "auto":
                 if bool(re.search(r"[a-zA-Z]+\s?(\d+)", text)) or bool(re.search(r"(\d+)\s?[a-zA-Z]+", text)):
                     lang = "en"
                 else:

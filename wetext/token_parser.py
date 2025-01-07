@@ -61,15 +61,18 @@ class Token:
 
 class TokenParser:
 
-    def __init__(self, ordertype="tn"):
-        if ordertype == "tn":
-            self.orders = TN_ORDERS
-        elif ordertype == "itn":
-            self.orders = ITN_ORDERS
-        elif ordertype == "en_tn":
-            self.orders = EN_TN_ORDERS
+    def __init__(self, lang, operator="tn"):
+        assert lang in ("en", "zh")
+        if lang == "en":
+            if operator == "tn":
+                self.orders = EN_TN_ORDERS
+            else:
+                raise NotImplementedError()
         else:
-            raise NotImplementedError()
+            if operator == "tn":
+                self.orders = TN_ORDERS
+            elif operator == "itn":
+                self.orders = ITN_ORDERS
 
     def load(self, input):
         assert len(input) > 0
