@@ -19,7 +19,7 @@ from wetext import Normalizer
 
 @click.command()
 @click.argument("text")
-@click.option("--lang", "-l", default="zh", type=click.Choice(["zh", "en"]))
+@click.option("--lang", "-l", default="auto", type=click.Choice(["auto", "en", "zh"]))
 @click.option("--operator", "-o", default="tn", type=click.Choice(["tn", "itn"]))
 @click.option("--remove-erhua/--no-remove-erhua", default=False)
 @click.option("--enable-0-to-9/--disable-0-to-9", default=True)
