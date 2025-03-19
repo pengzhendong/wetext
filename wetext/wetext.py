@@ -64,7 +64,8 @@ class Normalizer:
         return self.verbalizers[lang](text)
 
     def normalize(self, text):
-        if bool(re.search(r"\d", text)):
+        operator = self.operator
+        if operator == "itn" or bool(re.search(r"\d", text)):
             lang = self.lang
             if lang == "auto":
                 if bool(re.search(r"[a-zA-Z]+\s?(\d+)", text)) or bool(re.search(r"(\d+)\s?[a-zA-Z]+", text)):
