@@ -63,14 +63,17 @@ class Normalizer:
         text = TokenParser(lang, self.operator).reorder(text)
         return self.verbalizers[lang](text)
 
+    @staticmethod
+    def contains_chinese(string):
+        for ch in string:
+            if "\u4e00" <= ch <= "\u9fff":
+                return True
+        return False
+
     def normalize(self, text):
-        operator = self.operator
-        if operator == "itn" or bool(re.search(r"\d", text)):
+        if self.operator == "itn" or bool(re.search(r"\d", text)):
             lang = self.lang
             if lang == "auto":
-                if bool(re.search(r"[a-zA-Z]+\s?(\d+)", text)) or bool(re.search(r"(\d+)\s?[a-zA-Z]+", text)):
-                    lang = "en"
-                else:
-                    lang = "zh"
+                lang = "zh" if Normalizer.contains_chinese(text) else "en"
             return self.verbalize(self.tag(text, lang), lang)
         return text
