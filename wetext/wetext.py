@@ -17,7 +17,7 @@ import re
 from kaldifst import TextNormalizer as normalizer
 from modelscope import snapshot_download
 
-from .token_parser import TokenParser
+from wetext.token_parser import TokenParser
 
 
 class Normalizer:

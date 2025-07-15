@@ -20,7 +20,6 @@ jobs:
           echo ${{ inputs.version }} > VERSION
           python -m venv .venv
           source .venv/bin/activate
-          python -m pip install -U setuptools wheel
-          python setup.py bdist_wheel
-          python -m pip install -U twine
+          python -m pip install -U build setuptools twine wheel
+          python -m build
           python -m twine upload dist/*

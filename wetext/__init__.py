@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .wetext import Normalizer
+from wetext.wetext import Normalizer
 
 __all__ = ["Normalizer"]

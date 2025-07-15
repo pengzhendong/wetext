@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wetext"
+authors = [{ name = "Zhendong Peng", email = "pzd17@tsinghua.org.cn" }]
+description = "WeTextProcessing Runtime"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.8"
+dynamic = ["version"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = ["kaldifst>=1.7.14"]
+
+[project.scripts]
+wetext = "wetext.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/pengzhendong/wetext"
+Documentation = "https://github.com/pengzhendong/wetext#readme"
+BugTracker = "https://github.com/pengzhendong/wetext/issues"
+
+[tool.setuptools.dynamic]
+version = { file = "VERSION" }
