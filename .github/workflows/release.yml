@@ -18,6 +18,9 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           echo ${{ inputs.version }} > VERSION
+          git lfs install
+          git clone https://www.modelscope.cn/pengzhendong/wetext.git wetext/fsts
+
           python -m venv .venv
           source .venv/bin/activate
           python -m pip install -U build setuptools twine wheel

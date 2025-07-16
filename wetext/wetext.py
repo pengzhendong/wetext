@@ -13,9 +13,9 @@
 # limitations under the License.
 
 import re
+from importlib.resources import files
 
 from kaldifst import TextNormalizer as normalizer
-from modelscope import snapshot_download
 
 from wetext.token_parser import TokenParser
 
@@ -35,7 +35,6 @@ class Normalizer:
         self.taggers = {}
         self.verbalizers = {}
         if tagger_path is None or verbalizer_path is None:
-            repo_dir = snapshot_download("pengzhendong/wetext")
             assert lang in ("auto", "en", "zh") and operator in ("tn", "itn")
 
             taggers = {"en": "tagger.fst", "zh": "tagger.fst"}
@@ -47,8 +46,10 @@ class Normalizer:
 
             for lang in ("en", "zh"):
                 if self.lang in ("auto", lang):
-                    self.taggers[lang] = normalizer(f"{repo_dir}/{lang}/{operator}/{taggers[lang]}")
-                    self.verbalizers[lang] = normalizer(f"{repo_dir}/{lang}/{operator}/{verbalizers[lang]}")
+                    tagger_path = files("wetext.fsts").joinpath(f"{lang}/{operator}/{taggers[lang]}")
+                    verbalizer_path = files("wetext.fsts").joinpath(f"{lang}/{operator}/{verbalizers[lang]}")
+                    self.taggers[lang] = normalizer(str(tagger_path))
+                    self.verbalizers[lang] = normalizer(str(verbalizer_path))
         else:
             assert lang in ("en", "zh"), "Language must be 'en' or 'zh' when using custom tagger and verbalizer."
             self.taggers[lang] = normalizer(tagger_path)

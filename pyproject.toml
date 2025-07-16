@@ -7,7 +7,7 @@ name = "wetext"
 authors = [{ name = "Zhendong Peng", email = "pzd17@tsinghua.org.cn" }]
 description = "WeTextProcessing Runtime"
 readme = "README.md"
-license = { file = "LICENSE" }
+license = "Apache-2.0"
 requires-python = ">=3.8"
 dynamic = ["version"]
 classifiers = [
@@ -26,3 +26,6 @@ BugTracker = "https://github.com/pengzhendong/wetext/issues"
 
 [tool.setuptools.dynamic]
 version = { file = "VERSION" }
+
+[tool.setuptools.package-data]
+wetext = ["fsts/*"]
