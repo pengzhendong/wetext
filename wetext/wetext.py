@@ -138,8 +138,11 @@ class Normalizer:
             True if the text should be normalized, False otherwise.
         """
         if self.operator == "tn":
-            if not (self.remove_erhua or bool(re.search(r"\d", text))):
-                return False
+            if bool(re.search(r"\d", text)):
+                return True
+            if self.remove_erhua and re.search(r"儿|兒", text):
+                return True
+            return False
         return True
 
     def get_lang(self, text: str) -> Literal["en", "zh"]:
