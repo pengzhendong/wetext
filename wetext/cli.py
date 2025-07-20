@@ -21,14 +21,35 @@ from wetext import Normalizer
 @click.argument("text")
 @click.option("--lang", "-l", default="auto", type=click.Choice(["auto", "en", "zh"]))
 @click.option("--operator", "-o", default="tn", type=click.Choice(["tn", "itn"]))
-@click.option("--remove-erhua/--no-remove-erhua", default=False)
-@click.option("--enable-0-to-9/--disable-0-to-9", default=True)
-def main(text, lang, operator, remove_erhua, enable_0_to_9):
+@click.option("--traditional-to-simple", is_flag=True, help="Convert traditional Chinese to simplified Chinese.")
+@click.option("--full-to-half", is_flag=True, help="Convert full-width characters to half-width characters.")
+@click.option("--remove-interjections", is_flag=True, help="Remove interjections.")
+@click.option("--remove-puncts", is_flag=True, help="Remove punctuation.")
+@click.option("--tag-oov", is_flag=True, help="Tag out-of-vocabulary words.")
+@click.option("--enable-0-to-9", is_flag=True, help="Enable 0-to-9 conversion.")
+@click.option("--remove-erhua", is_flag=True, help="Remove erhua.")
+def main(
+    text,
+    lang,
+    operator,
+    traditional_to_simple,
+    full_to_half,
+    remove_interjections,
+    remove_puncts,
+    tag_oov,
+    enable_0_to_9,
+    remove_erhua,
+):
     normalizer = Normalizer(
-        lang=lang,
-        operator=operator,
-        remove_erhua=remove_erhua,  # only works for zh-tn
-        enable_0_to_9=enable_0_to_9,  # only works for zh-itn
+        lang,
+        operator,
+        traditional_to_simple,
+        full_to_half,
+        remove_interjections,
+        remove_puncts,
+        tag_oov,
+        enable_0_to_9,
+        remove_erhua,
     )
     text = normalizer.normalize(text)
     print(text)
