@@ -143,7 +143,7 @@ class Normalizer:
             if self.remove_erhua and re.search(r"儿|兒", text):
                 return True
             return False
-        return True
+        return len(text) > 0
 
     def get_lang(self, text: str) -> Literal["en", "zh"]:
         """
