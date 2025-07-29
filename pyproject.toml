@@ -7,14 +7,14 @@ name = "wetext"
 authors = [{ name = "Zhendong Peng", email = "pzd17@tsinghua.org.cn" }]
 description = "WeTextProcessing Runtime"
 readme = "README.md"
-license = "Apache-2.0"
-requires-python = ">=3.8"
+license = {file = "LICENSE"}
+requires-python = ">=3.7"
 dynamic = ["version"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-dependencies = ["kaldifst>=1.7.14"]
+dependencies = ["kaldifst"]
 
 [project.scripts]
 wetext = "wetext.cli:main"

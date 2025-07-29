@@ -20,6 +20,7 @@ from kaldifst import TextNormalizer as normalizer
 def contains_chinese(text: str) -> bool:
     """
     Check if the text contains Chinese characters.
+
     Args:
         text: The text to check.
     Returns:
@@ -34,6 +35,7 @@ def contains_chinese(text: str) -> bool:
 def load_fst(fst_path) -> normalizer:
     """
     Load a FST from the fsts directory.
+
     Args:
         fst_path: The path to the FST file.
     Returns:

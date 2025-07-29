@@ -37,6 +37,7 @@ class Normalizer:
     ):
         """
         Initialize the Normalizer.
+
         Args:
             lang: The language of the text.
             operator: The operator to use.
@@ -69,6 +70,7 @@ class Normalizer:
     def preprocess(self, text: str) -> str:
         """
         Preprocess the text before normalization.
+
         Args:
             text: The text to preprocess.
         Returns:
@@ -81,6 +83,7 @@ class Normalizer:
     def postprocess(self, text: str) -> str:
         """
         Postprocess the text after normalization.
+
         Args:
             text: The text to postprocess.
         Returns:
@@ -99,6 +102,7 @@ class Normalizer:
     def tag(self, text: str, lang: Literal["en", "zh"]) -> str:
         """
         Tag the text.
+
         Args:
             text: The text to tag.
             lang: The language of the text.
@@ -110,6 +114,7 @@ class Normalizer:
     def reorder(self, text: str, lang: Literal["en", "zh"]) -> str:
         """
         Reorder the text.
+
         Args:
             text: The text to reorder.
             lang: The language of the text.
@@ -121,6 +126,7 @@ class Normalizer:
     def verbalize(self, text: str, lang: Literal["en", "zh"]) -> str:
         """
         Verbalize the text.
+
         Args:
             text: The text to verbalize.
             lang: The language of the text.
@@ -132,6 +138,7 @@ class Normalizer:
     def should_normalize(self, text: str) -> bool:
         """
         Check if the text should be normalized.
+
         Args:
             text: The text to check.
         Returns:
@@ -148,6 +155,7 @@ class Normalizer:
     def get_lang(self, text: str) -> Literal["en", "zh"]:
         """
         Get the language of the text.
+
         Args:
             text: The text to get the language of.
         Returns:
@@ -158,6 +166,7 @@ class Normalizer:
     def normalize(self, text: str, lang: Optional[Literal["auto", "en", "zh"]] = None) -> str:
         """
         Normalize the text.
+
         Args:
             text: The text to normalize.
             lang: The language of the text.
