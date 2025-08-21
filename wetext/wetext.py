@@ -12,14 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
 import re
 from typing import Literal, Optional
 
 from wetext.token_parser import TokenParser
 from wetext.utils import contains_chinese, load_fst
-
-logging.basicConfig(level=logging.INFO)
 
 
 class Normalizer:
@@ -179,7 +176,7 @@ class Normalizer:
             if lang == "auto":
                 lang = self.get_lang(text)
             if lang == "en" and self.operator == "itn":
-                logging.warning("ITN for English is not supported now, using ITN for Chinese instead.")
+                # ITN for English is not supported now, using ITN for Chinese instead.
                 lang = "zh"
             text = self.tag(text, lang)
             text = self.reorder(text, lang)
