@@ -7,7 +7,7 @@ name = "wetext"
 authors = [{ name = "Zhendong Peng", email = "pzd17@tsinghua.org.cn" }]
 description = "WeTextProcessing Runtime"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
 requires-python = ">=3.7"
 dynamic = ["version"]
 classifiers = [

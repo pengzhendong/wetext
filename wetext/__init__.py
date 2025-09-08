@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from wetext.utils import (
+    normalize,
+    postprocess,
+    preprocess,
+    reorder,
+    should_normalize,
+    tag,
+    verbalize,
+)
 from wetext.wetext import Normalizer
 
-__all__ = ["Normalizer"]
+__all__ = ["Normalizer", "normalize", "postprocess", "preprocess", "reorder", "should_normalize", "tag", "verbalize"]
