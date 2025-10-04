@@ -22,6 +22,7 @@ class Normalizer:
         self,
         lang: Literal["auto", "en", "zh"] = "auto",
         operator: Literal["tn", "itn"] = "tn",
+        fix_contractions: bool = False,
         traditional_to_simple: bool = False,
         full_to_half: bool = False,
         remove_interjections: bool = False,
@@ -36,6 +37,7 @@ class Normalizer:
         Args:
             lang: The language of the text.
             operator: The operator to use.
+            fix_contractions: Whether to fix contractions.
             traditional_to_simple: Whether to convert traditional Chinese to simplified Chinese.
             full_to_half: Whether to convert full-width characters to half-width characters.
             remove_interjections: Whether to remove interjections.
@@ -46,6 +48,7 @@ class Normalizer:
         """
         self.lang = lang
         self.operator = operator
+        self.fix_contractions = fix_contractions
         self.traditional_to_simple = traditional_to_simple
         self.full_to_half = full_to_half
         self.remove_interjections = remove_interjections
@@ -59,6 +62,7 @@ class Normalizer:
         text: str,
         lang: Optional[Literal["auto", "en", "zh"]] = None,
         operator: Optional[Literal["tn", "itn"]] = None,
+        fix_contractions: bool = False,
         traditional_to_simple: bool = False,
         full_to_half: bool = False,
         remove_interjections: bool = False,
@@ -74,6 +78,7 @@ class Normalizer:
             text: The text to normalize.
             lang: The language of the text.
             operator: The operator to use.
+            fix_contractions: Whether to fix contractions.
             traditional_to_simple: Whether to convert traditional Chinese to simplified Chinese.
             full_to_half: Whether to convert full-width characters to half-width characters.
             remove_interjections: Whether to remove interjections.
@@ -88,6 +93,7 @@ class Normalizer:
             text,
             lang or self.lang,
             operator or self.operator,
+            fix_contractions or self.fix_contractions,
             traditional_to_simple or self.traditional_to_simple,
             full_to_half or self.full_to_half,
             remove_interjections or self.remove_interjections,

@@ -15,6 +15,8 @@
 import re
 from typing import Literal
 
+import contractions
+
 from wetext.constants import FSTS
 from wetext.token_parser import TokenParser
 
@@ -153,6 +155,7 @@ def normalize(
     text: str,
     lang: Literal["auto", "en", "zh"] = "auto",
     operator: Literal["tn", "itn"] = "tn",
+    fix_contractions: bool = False,
     traditional_to_simple: bool = False,
     full_to_half: bool = False,
     remove_interjections: bool = False,
@@ -168,6 +171,7 @@ def normalize(
         text: The text to normalize.
         lang: The language of the text.
         operator: The operator to use.
+        fix_contractions: Whether to fix contractions.
         traditional_to_simple: Whether to convert traditional Chinese to simplified Chinese.
         full_to_half: Whether to convert full-width characters to half-width characters.
         remove_interjections: Whether to remove interjections.
@@ -178,6 +182,8 @@ def normalize(
     Returns:
         The normalized text.
     """
+    if fix_contractions and "'" in text:
+        text = contractions.fix(text)
     text = preprocess(text, traditional_to_simple)
     if should_normalize(text, operator, remove_erhua):
         if lang == "auto":

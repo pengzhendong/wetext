@@ -21,6 +21,7 @@ from wetext import Normalizer
 @click.argument("text")
 @click.option("--lang", "-l", default="auto", type=click.Choice(["auto", "en", "zh"]))
 @click.option("--operator", "-o", default="tn", type=click.Choice(["tn", "itn"]))
+@click.option("--fix-contractions", is_flag=True, help="Fix contractions.")
 @click.option("--traditional-to-simple", is_flag=True, help="Convert traditional Chinese to simplified Chinese.")
 @click.option("--full-to-half", is_flag=True, help="Convert full-width characters to half-width characters.")
 @click.option("--remove-interjections", is_flag=True, help="Remove interjections.")
@@ -32,6 +33,7 @@ def main(
     text,
     lang,
     operator,
+    fix_contractions,
     traditional_to_simple,
     full_to_half,
     remove_interjections,
@@ -43,6 +45,7 @@ def main(
     normalizer = Normalizer(
         lang,
         operator,
+        fix_contractions,
         traditional_to_simple,
         full_to_half,
         remove_interjections,
