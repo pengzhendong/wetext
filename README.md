@@ -5,19 +5,19 @@
 
 Python runtime for WeTextProcessing (does not depend on Pynini).
 
-WeTextProcessing is a text processing library that provides text normalization (TN) and inverse text normalization (ITN) capabilities for Chinese and English text. It uses Finite State Transducers (FSTs) for efficient text processing.
+WeTextProcessing is a text processing library that provides text normalization (TN) and inverse text normalization (ITN) capabilities for Chinese, English and Japanese text. It uses Finite State Transducers (FSTs) for efficient text processing.
 
 ## Features
 
-- Text Normalization (TN) for Chinese and English
-- Inverse Text Normalization (ITN) for Chinese
+- Text Normalization (TN) for Chinese, English and Japanese
+- Inverse Text Normalization (ITN) for Chinese and Japanese
 - Traditional to Simplified Chinese conversion
 - Full-width to Half-width character conversion
 - Interjection removal
 - Punctuation removal
 - Out-of-vocabulary (OOV) word tagging
 - Erhua removal (for Chinese)
-- 0-to-9 conversion (for Chinese ITN)
+- 0-to-9 conversion (for Chinese and Japanese ITN)
 
 ## Installation
 
@@ -78,7 +78,7 @@ wetext --remove-puncts "你好，這是測試。"
 
 ```python
 Normalizer(
-    lang: Literal["auto", "en", "zh"] = "auto",
+    lang: Literal["auto", "en", "zh", "ja"] = "auto",
     operator: Literal["tn", "itn"] = "tn",
     traditional_to_simple: bool = False,
     full_to_half: bool = False,
@@ -92,7 +92,7 @@ Normalizer(
 
 #### Parameters
 
-- `lang`: The language of the text. Can be "auto", "en", or "zh". Default is "auto".
+- `lang`: The language of the text. Can be "auto", "en", "zh" or "ja". Default is "auto".
 - `operator`: The operator to use. Can be "tn" (text normalization) or "itn" (inverse text normalization). Default is "tn".
 - `traditional_to_simple`: Whether to convert traditional Chinese to simplified Chinese. Default is False.
 - `full_to_half`: Whether to convert full-width characters to half-width characters. Default is False.
@@ -104,11 +104,11 @@ Normalizer(
 
 #### Methods
 
-- `normalize(text: str, lang: Optional[Literal["auto", "en", "zh"]] = None) -> str`: Normalize the text.
+- `normalize(text: str, lang: Optional[Literal["auto", "en", "zh", "ja"]] = None) -> str`: Normalize the text.
 
 ## CLI Options
 
-- `--lang, -l`: Set the language. Choices are "auto", "en", "zh". Default is "auto".
+- `--lang, -l`: Set the language. Choices are "auto", "en", "zh", "ja". Default is "auto".
 - `--operator, -o`: Set the operator. Choices are "tn", "itn". Default is "tn".
 - `--traditional-to-simple`: Convert traditional Chinese to simplified Chinese.
 - `--full-to-half`: Convert full-width characters to half-width characters.
