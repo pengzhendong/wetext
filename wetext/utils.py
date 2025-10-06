@@ -13,10 +13,12 @@
 # limitations under the License.
 
 import re
-from typing import Literal
+from dataclasses import replace
+from typing import Literal, Optional
 
 import contractions
 
+from wetext.config import NormalizerConfig
 from wetext.constants import FSTS
 from wetext.token_parser import TokenParser
 
@@ -64,9 +66,9 @@ def postprocess(
 
     Args:
         text: The text to postprocess.
-        full_to_half: Whether to convert full-width characters to half-width characters.
+        full_to_half: Whether to convert full-width characters to half-width.
         remove_interjections: Whether to remove interjections.
-        remove_puncts: Whether to remove punctuation.
+        remove_puncts: Whether to remove punctuations.
         tag_oov: Whether to tag out-of-vocabulary words.
     Returns:
         The postprocessed text.
@@ -151,48 +153,30 @@ def verbalize(text: str, lang: Literal["en", "zh"], operator: Literal["tn", "itn
     return verbalizer(text).strip()
 
 
-def normalize(
-    text: str,
-    lang: Literal["auto", "en", "zh"] = "auto",
-    operator: Literal["tn", "itn"] = "tn",
-    fix_contractions: bool = False,
-    traditional_to_simple: bool = False,
-    full_to_half: bool = False,
-    remove_interjections: bool = False,
-    remove_puncts: bool = False,
-    tag_oov: bool = False,
-    enable_0_to_9: bool = False,
-    remove_erhua: bool = False,
-):
+def normalize(text: str, config: Optional[NormalizerConfig] = None, **kwargs):
     """
     Normalize the text.
 
     Args:
         text: The text to normalize.
-        lang: The language of the text.
-        operator: The operator to use.
-        fix_contractions: Whether to fix contractions.
-        traditional_to_simple: Whether to convert traditional Chinese to simplified Chinese.
-        full_to_half: Whether to convert full-width characters to half-width characters.
-        remove_interjections: Whether to remove interjections.
-        remove_puncts: Whether to remove punctuation.
-        tag_oov: Whether to tag out-of-vocabulary words.
-        remove_erhua: Whether to remove erhua for TN.
-        enable_0_to_9: Whether to enable 0-to-9 conversion for ITN.
+        config: Optional normalization config object.
     Returns:
         The normalized text.
     """
-    if fix_contractions and "'" in text:
+    config = replace(config or NormalizerConfig(), **kwargs)
+
+    if config.fix_contractions and "'" in text:
         text = contractions.fix(text)
-    text = preprocess(text, traditional_to_simple)
-    if should_normalize(text, operator, remove_erhua):
+    text = preprocess(text, config.traditional_to_simple)
+    lang = config.lang
+    if should_normalize(text, config.operator, config.remove_erhua):
         if lang == "auto":
             lang = get_lang(text)
-        if lang == "en" and operator == "itn":
+        if lang == "en" and config.operator == "itn":
             # ITN for English is not supported now, using ITN for Chinese instead.
             lang = "zh"
-        text = tag(text, lang, operator, enable_0_to_9)
-        text = reorder(text, lang, operator)
-        text = verbalize(text, lang, operator, remove_erhua)
-    text = postprocess(text, full_to_half, remove_interjections, remove_puncts, tag_oov)
+        text = tag(text, lang, config.operator, config.enable_0_to_9)
+        text = reorder(text, lang, config.operator)
+        text = verbalize(text, lang, config.operator, config.remove_erhua)
+    text = postprocess(text, config.full_to_half, config.remove_interjections, config.remove_puncts, config.tag_oov)
     return text

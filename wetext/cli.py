@@ -29,31 +29,9 @@ from wetext import Normalizer
 @click.option("--tag-oov", is_flag=True, help="Tag out-of-vocabulary words.")
 @click.option("--enable-0-to-9", is_flag=True, help="Enable 0-to-9 conversion.")
 @click.option("--remove-erhua", is_flag=True, help="Remove erhua.")
-def main(
-    text,
-    lang,
-    operator,
-    fix_contractions,
-    traditional_to_simple,
-    full_to_half,
-    remove_interjections,
-    remove_puncts,
-    tag_oov,
-    enable_0_to_9,
-    remove_erhua,
-):
-    normalizer = Normalizer(
-        lang,
-        operator,
-        fix_contractions,
-        traditional_to_simple,
-        full_to_half,
-        remove_interjections,
-        remove_puncts,
-        tag_oov,
-        enable_0_to_9,
-        remove_erhua,
-    )
+def main(**kwargs):
+    text = kwargs.pop("text")
+    normalizer = Normalizer(**kwargs)
     text = normalizer.normalize(text)
     print(text)
 
