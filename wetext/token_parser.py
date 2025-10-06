@@ -44,7 +44,7 @@ class Token:
 class TokenParser:
 
     def __init__(self, lang, operator="tn"):
-        assert lang in ("en", "zh")
+        assert lang in ("en", "zh", "ja")
         if lang == "en":
             if operator == "tn":
                 self.orders = EN_TN_ORDERS

@@ -23,7 +23,7 @@ from wetext.constants import FSTS
 from wetext.token_parser import TokenParser
 
 
-def get_lang(text: str) -> Literal["en", "zh"]:
+def get_lang(text: str) -> Literal["en", "zh", "ja"]:
     """
     Get the language of the text.
 
@@ -104,7 +104,7 @@ def should_normalize(text: str, operator: Literal["tn", "itn"], remove_erhua: bo
     return len(text) > 0
 
 
-def reorder(text: str, lang: Literal["en", "zh"], operator: Literal["tn", "itn"]) -> str:
+def reorder(text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", "itn"]) -> str:
     """
     Reorder the text.
 
@@ -117,7 +117,7 @@ def reorder(text: str, lang: Literal["en", "zh"], operator: Literal["tn", "itn"]
     return TokenParser(lang, operator).reorder(text)
 
 
-def tag(text: str, lang: Literal["en", "zh"], operator: Literal["tn", "itn"], enable_0_to_9: bool = False) -> str:
+def tag(text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", "itn"], enable_0_to_9: bool = False) -> str:
     """
     Tag the text.
 
@@ -130,12 +130,14 @@ def tag(text: str, lang: Literal["en", "zh"], operator: Literal["tn", "itn"], en
         The tagged text.
     """
     tagger = FSTS[lang][operator]["tagger"]
-    if enable_0_to_9 and lang == "zh" and operator == "itn":
-        tagger = FSTS["zh"]["itn"]["tagger_enable_0_to_9"]
+    if enable_0_to_9 and lang != "en" and operator == "itn":
+        tagger = FSTS[lang]["itn"]["tagger_enable_0_to_9"]
     return tagger(text).strip()
 
 
-def verbalize(text: str, lang: Literal["en", "zh"], operator: Literal["tn", "itn"], remove_erhua: bool = False) -> str:
+def verbalize(
+    text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", "itn"], remove_erhua: bool = False
+) -> str:
     """
     Verbalize the text.
 

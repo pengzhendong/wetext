@@ -71,6 +71,17 @@ FSTS = {
             "verbalizer": load_fst("zh/itn/verbalizer.fst"),
         },
     },
+    "ja": {
+        "tn": {
+            "tagger": load_fst("ja/tn/tagger.fst"),
+            "verbalizer": load_fst("ja/tn/verbalizer.fst"),
+        },
+        "itn": {
+            "tagger": load_fst("ja/itn/tagger.fst"),
+            "tagger_enable_0_to_9": load_fst("ja/itn/tagger_enable_0_to_9.fst"),
+            "verbalizer": load_fst("ja/itn/verbalizer.fst"),
+        },
+    },
     "postprocess": {
         "full_to_half": load_fst("full_to_half.fst"),
         "remove_interjections": load_fst("remove_interjections.fst"),

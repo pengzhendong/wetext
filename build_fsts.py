@@ -226,11 +226,108 @@ def build_en_tn():
     verbalizer.optimize().star.optimize().write("wetext/fsts/en/tn/verbalizer.fst")
 
 
+def build_ja_tn():
+    from tn.japanese.rules.cardinal import Cardinal
+    from tn.japanese.rules.char import Char
+    from tn.japanese.rules.date import Date
+    from tn.japanese.rules.fraction import Fraction
+    from tn.japanese.rules.math import Math
+    from tn.japanese.rules.measure import Measure
+    from tn.japanese.rules.money import Money
+    from tn.japanese.rules.sport import Sport
+    from tn.japanese.rules.time import Time
+
+    # from tn.japanese.rules.transliteration import Transliteration
+    from tn.japanese.rules.whitelist import Whitelist
+
+    os.makedirs("wetext/fsts/ja/tn", exist_ok=True)
+
+    cardinal = add_weight(Cardinal().tagger, 1.06)
+    char = add_weight(Char().tagger, 100)
+    date = add_weight(Date().tagger, 1.02)
+    fraction = add_weight(Fraction().tagger, 1.05)
+    math = add_weight(Math().tagger, 90)
+    measure = add_weight(Measure().tagger, 1.05)
+    money = add_weight(Money().tagger, 1.05)
+    sport = add_weight(Sport().tagger, 1.06)
+    time = add_weight(Time().tagger, 1.05)
+    whitelist = add_weight(Whitelist().tagger, 1.03)
+    tagger = cardinal | char | date | fraction | math | measure | money | sport | time | whitelist
+    # if self.transliterate:
+    #     transliteration = add_weight(Transliteration().tagger, 1.04)
+    #     tagger = (tagger | transliteration)
+    tagger.optimize().star.optimize().write("wetext/fsts/ja/tn/tagger.fst")
+
+    cardinal = Cardinal().verbalizer
+    char = Char().verbalizer
+    date = Date().verbalizer
+    fraction = Fraction().verbalizer
+    math = Math().verbalizer
+    measure = Measure().verbalizer
+    money = Money().verbalizer
+    sport = Sport().verbalizer
+    time = Time().verbalizer
+    whitelist = Whitelist().verbalizer
+    verbalizer = cardinal | char | date | fraction | math | measure | money | sport | time | whitelist
+    # if self.transliterate:
+    #     transliteration = Transliteration().verbalizer
+    #     verbalizer = (verbalizer | transliteration)
+    verbalizer.optimize().star.optimize().write("wetext/fsts/ja/tn/verbalizer.fst")
+
+
+def build_ja_itn():
+    from itn.japanese.rules.cardinal import Cardinal
+    from itn.japanese.rules.char import Char
+    from itn.japanese.rules.date import Date
+    from itn.japanese.rules.fraction import Fraction
+    from itn.japanese.rules.math import Math
+    from itn.japanese.rules.measure import Measure
+    from itn.japanese.rules.money import Money
+    from itn.japanese.rules.ordinal import Ordinal
+    from itn.japanese.rules.time import Time
+    from itn.japanese.rules.whitelist import Whitelist
+
+    os.makedirs("wetext/fsts/ja/itn", exist_ok=True)
+
+    for enable_0_to_9 in [True, False]:
+        cardinal = add_weight(Cardinal(True, enable_0_to_9, False).tagger, 1.06)
+        measure = add_weight(Measure(enable_0_to_9).tagger, 1.05)
+        money = add_weight(Money(enable_0_to_9).tagger, 1.04)
+        char = add_weight(Char().tagger, 100)
+        date = add_weight(Date().tagger, 1.02)
+        fraction = add_weight(Fraction().tagger, 1.05)
+        math = add_weight(Math().tagger, 90)
+        ordinal = add_weight(Ordinal().tagger, 1.04)
+        time = add_weight(Time().tagger, 1.04)
+        whitelist = add_weight(Whitelist().tagger, 1.01)
+
+        tagger = cardinal | char | date | fraction | math | measure | money | ordinal | time | whitelist
+        tagger.optimize().star.optimize().write(
+            "wetext/fsts/ja/itn/tagger_enable_0_to_9.fst" if enable_0_to_9 else "wetext/fsts/ja/itn/tagger.fst"
+        )
+
+    cardinal = Cardinal().verbalizer
+    char = Char().verbalizer
+    date = Date().verbalizer
+    fraction = Fraction().verbalizer
+    math = Math().verbalizer
+    measure = Measure().verbalizer
+    money = Money().verbalizer
+    ordinal = Ordinal().verbalizer
+    time = Time().verbalizer
+    whitelist = Whitelist().verbalizer
+
+    verbalizer = cardinal | char | date | fraction | math | measure | money | ordinal | time | whitelist
+    verbalizer.optimize().star.optimize().write("wetext/fsts/ja/itn/verbalizer.fst")
+
+
 def main():
     build_zh_processors()
     build_zh_tn()
     build_zh_itn()
     build_en_tn()
+    build_ja_tn()
+    build_ja_itn()
 
 
 if __name__ == "__main__":
