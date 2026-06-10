@@ -14,11 +14,10 @@
 
 import string
 
-from wetext.constants import EN_TN_ORDERS, EOS, ITN_ORDERS, TN_ORDERS
+from wetext.constants import EN_ITN_ORDERS, EN_TN_ORDERS, EOS, ITN_ORDERS, TN_ORDERS
 
 
 class Token:
-
     def __init__(self, name):
         self.name = name
         self.order = []
@@ -42,12 +41,13 @@ class Token:
 
 
 class TokenParser:
-
     def __init__(self, lang, operator="tn"):
         assert lang in ("en", "zh", "ja")
         if lang == "en":
             if operator == "tn":
                 self.orders = EN_TN_ORDERS
+            elif operator == "itn":
+                self.orders = EN_ITN_ORDERS
             else:
                 raise NotImplementedError()
         else:

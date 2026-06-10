@@ -49,6 +49,10 @@ ITN_ORDERS = {
     "money": ["currency", "value", "decimal"],
     "time": ["hour", "minute", "second", "noon"],
 }
+EN_ITN_ORDERS = {
+    "money": ["currency", "value", "decimal", "quantity"],
+    "time": ["hour", "minute", "noon", "zone"],
+}
 FSTS = {
     "preprocess": {
         "traditional_to_simple": load_fst("traditional_to_simple.fst"),
@@ -57,7 +61,11 @@ FSTS = {
         "tn": {
             "tagger": load_fst("en/tn/tagger.fst"),
             "verbalizer": load_fst("en/tn/verbalizer.fst"),
-        }
+        },
+        "itn": {
+            "tagger": load_fst("en/itn/tagger.fst"),
+            "verbalizer": load_fst("en/itn/verbalizer.fst"),
+        },
     },
     "zh": {
         "tn": {
