@@ -226,6 +226,79 @@ def build_en_tn():
     verbalizer.optimize().star.optimize().write("wetext/fsts/en/tn/verbalizer.fst")
 
 
+def build_en_itn():
+    from itn.english.rules.cardinal import Cardinal
+    from itn.english.rules.char import Char
+    from itn.english.rules.date import Date
+    from itn.english.rules.decimal import Decimal
+    from itn.english.rules.electronic import Electronic
+    from itn.english.rules.measure import Measure
+    from itn.english.rules.money import Money
+    from itn.english.rules.ordinal import Ordinal
+    from itn.english.rules.punctuation import Punctuation
+    from itn.english.rules.telephone import Telephone
+    from itn.english.rules.time import Time
+    from itn.english.rules.whitelist import Whitelist
+    from itn.english.rules.word import Word
+    from pynini import closure
+
+    os.makedirs("wetext/fsts/en/itn", exist_ok=True)
+
+    cardinal = Cardinal()
+    ordinal = Ordinal(cardinal=cardinal)
+    decimal = Decimal(cardinal=cardinal)
+    date = Date(cardinal=cardinal, ordinal=ordinal)
+    time = Time(cardinal=cardinal)
+    measure = Measure(cardinal=cardinal, decimal=decimal)
+    money = Money(cardinal=cardinal, decimal=decimal)
+    telephone = Telephone(cardinal=cardinal)
+    electronic = Electronic()
+    whitelist = Whitelist()
+    word = Word()
+    char = Char()
+    punctuation = Punctuation()
+
+    DELETE_EXTRA_SPACE = delete(byte.SPACE.plus | " ")
+    classify = (
+        add_weight(date.tagger, 1.09)
+        | add_weight(time.tagger, 1.1)
+        | add_weight(measure.tagger, 1.1)
+        | add_weight(money.tagger, 1.08)
+        | add_weight(whitelist.tagger, 1.01)
+        | add_weight(telephone.tagger, 1.1)
+        | add_weight(electronic.tagger, 1.1)
+        | add_weight(ordinal.tagger, 1.09)
+        | add_weight(decimal.tagger, 1.1)
+        | add_weight(cardinal.tagger, 1.1)
+        | add_weight(word.tagger, 50)
+        | add_weight(char.tagger, 100)
+    ).optimize()
+
+    punct = add_weight(punctuation.tagger, 1.1)
+    token = closure(punct + delete(" ").ques) + classify + closure(delete(" ").ques + punct)
+    graph = token + closure(DELETE_EXTRA_SPACE + token)
+    tagger = delete(" ").star + graph + delete(" ").star
+    tagger.optimize().write("wetext/fsts/en/itn/tagger.fst")
+
+    verbalizer = (
+        cardinal.verbalizer
+        | ordinal.verbalizer
+        | decimal.verbalizer
+        | date.verbalizer
+        | time.verbalizer
+        | measure.verbalizer
+        | money.verbalizer
+        | telephone.verbalizer
+        | electronic.verbalizer
+        | whitelist.verbalizer
+        | word.verbalizer
+        | char.verbalizer
+        | punctuation.verbalizer
+    ).optimize()
+    verbalizer = (verbalizer + insert(" ")).star
+    verbalizer.optimize().write("wetext/fsts/en/itn/verbalizer.fst")
+
+
 def build_ja_tn():
     from tn.japanese.rules.cardinal import Cardinal
     from tn.japanese.rules.char import Char
@@ -326,6 +399,7 @@ def main():
     build_zh_tn()
     build_zh_itn()
     build_en_tn()
+    build_en_itn()
     build_ja_tn()
     build_ja_itn()
 

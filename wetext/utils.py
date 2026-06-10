@@ -174,9 +174,6 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, **kwargs):
     if should_normalize(text, config.operator, config.remove_erhua):
         if lang == "auto":
             lang = get_lang(text)
-        if lang == "en" and config.operator == "itn":
-            # ITN for English is not supported now, using ITN for Chinese instead.
-            lang = "zh"
         text = tag(text, lang, config.operator, config.enable_0_to_9)
         text = reorder(text, lang, config.operator)
         text = verbalize(text, lang, config.operator, config.remove_erhua)
