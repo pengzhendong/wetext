@@ -84,18 +84,19 @@ def postprocess(
     return text.strip()
 
 
-def should_normalize(text: str, operator: Literal["tn", "itn"], remove_erhua: bool = False) -> bool:
+def should_normalize(text: str, lang: str, operator: Literal["tn", "itn"], remove_erhua: bool = False) -> bool:
     """
     Check if the text should be normalized.
 
     Args:
         text: The text to check.
+        lang: The language of the text.
         operator: The operator to use.
         remove_erhua: Whether to remove erhua for TN.
     Returns:
         True if the text should be normalized, False otherwise.
     """
-    if operator == "tn":
+    if operator == "tn" and lang != "en":
         if bool(re.search(r"\d", text)):
             return True
         if remove_erhua and re.search(r"儿|兒", text):
@@ -171,9 +172,9 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, **kwargs):
         text = contractions.fix(text)
     text = preprocess(text, config.traditional_to_simple)
     lang = config.lang
-    if should_normalize(text, config.operator, config.remove_erhua):
-        if lang == "auto":
-            lang = get_lang(text)
+    if lang == "auto":
+        lang = get_lang(text)
+    if should_normalize(text, lang, config.operator, config.remove_erhua):
         text = tag(text, lang, config.operator, config.enable_0_to_9)
         text = reorder(text, lang, config.operator)
         text = verbalize(text, lang, config.operator, config.remove_erhua)
