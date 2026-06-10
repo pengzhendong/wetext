@@ -10,7 +10,7 @@ WeTextProcessing is a text processing library that provides text normalization (
 ## Features
 
 - Text Normalization (TN) for Chinese, English and Japanese
-- Inverse Text Normalization (ITN) for Chinese and Japanese
+- Inverse Text Normalization (ITN) for Chinese, English and Japanese
 - Traditional to Simplified Chinese conversion
 - Full-width to Half-width character conversion
 - Interjection removal
@@ -41,8 +41,8 @@ print(result)  # 你好 WeTextProcessing 一点零，全新版本，简直六六
 
 # English TN
 normalizer = Normalizer(lang="en", operator="tn")
-result = normalizer.normalize("Today is August 8, 2024.")
-print(result)  # Today is the eighth of august , twenty twenty four.
+result = normalizer.normalize("The price is $12.50, please pay now.")
+print(result)  # The price is twelve point five dollars, please pay now.
 ```
 
 #### Inverse Text Normalization (ITN)
@@ -54,6 +54,11 @@ from wetext import Normalizer
 normalizer = Normalizer(lang="zh", operator="itn", enable_0_to_9=False)
 result = normalizer.normalize("你好 WeTextProcessing 一点零，全新版本儿，简直六六六，九和六")
 print(result)  # 你好 WeTextProcessing 1.0，全新版本儿，简直666，九和六
+
+# English ITN
+normalizer = Normalizer(lang="en", operator="itn")
+result = normalizer.normalize("twenty three dollars and fifty cents")
+print(result)  # $23.50
 ```
 
 ### Command Line Interface
