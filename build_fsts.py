@@ -14,6 +14,7 @@
 
 import os
 
+import pynini
 from pynini.lib import byte
 from pynini.lib.pynutil import add_weight, delete, insert
 
@@ -181,13 +182,13 @@ def build_en_tn():
     whitelist = WhiteList()
     rang = Range(date=date, time=time)
 
-    tagger = (
+    classify = (
         add_weight(cardinal.tagger, 1.0)
         | add_weight(ordinal.tagger, 1.0)
         | add_weight(word.tagger, 100)
         | add_weight(date.tagger, 0.99)
         | add_weight(decimal.tagger, 1.0)
-        | add_weight(fraction.tagger, 1.0)
+        | add_weight(fraction.tagger, 0.99)
         | add_weight(time.tagger, 1.00)
         | add_weight(measure.tagger, 1.00)
         | add_weight(money.tagger, 1.00)
@@ -195,13 +196,17 @@ def build_en_tn():
         | add_weight(electronic.tagger, 1.00)
         | add_weight(serial.tagger, 1.01)
         | add_weight(whitelist.tagger, 1.00)
-        | add_weight(rang.tagger, 1.01)
-        | add_weight(punctuation.tagger, 2.00)
-    ).optimize() + (add_weight(punctuation.tagger, 2.00).plus | p.DELETE_SPACE)
-    tagger = (delete(" ").star + tagger.star) @ p.build_rule(delete(" "), r="[EOS]")
+        | add_weight(rang.tagger, 1.0)
+    ).optimize()
+
+    punct = add_weight(punctuation.tagger, 2.00)
+    token = pynini.closure(punct) + classify + pynini.closure(punct)
+    separator = delete(p.SPACE) | punct
+    graph = (p.DELETE_SPACE + token + pynini.closure(separator + token) + p.DELETE_SPACE) | punct
+    tagger = graph.optimize() @ p.build_rule(delete(" "), r="[EOS]")
     tagger.optimize().write("wetext/fsts/en/tn/tagger.fst")
 
-    verbalizer = (
+    classify = (
         cardinal.verbalizer
         | ordinal.verbalizer
         | word.verbalizer
@@ -215,10 +220,14 @@ def build_en_tn():
         | electronic.verbalizer
         | serial.verbalizer
         | whitelist.verbalizer
-        | punctuation.verbalizer
         | rang.verbalizer
-    ).optimize() + (punctuation.verbalizer.plus | p.INSERT_SPACE)
-    verbalizer = verbalizer.star @ p.build_rule(delete(" "), r="[EOS]")
+    ).optimize()
+    punct = punctuation.verbalizer.optimize()
+    verbalizer = (
+        classify + (punct.plus | p.INSERT_SPACE)
+        | punct + (punct.plus | p.DELETE_SPACE)
+    ).star
+    verbalizer = verbalizer @ p.build_rule(delete(" "), r="[EOS]")
     verbalizer.optimize().write("wetext/fsts/en/tn/verbalizer.fst")
 
 
