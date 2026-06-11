@@ -223,10 +223,7 @@ def build_en_tn():
         | rang.verbalizer
     ).optimize()
     punct = punctuation.verbalizer.optimize()
-    verbalizer = (
-        classify + (punct.plus | p.INSERT_SPACE)
-        | punct + (punct.plus | p.DELETE_SPACE)
-    ).star
+    verbalizer = (classify + (punct.plus | p.INSERT_SPACE) | punct + (punct.plus | p.DELETE_SPACE)).star
     verbalizer = verbalizer @ p.build_rule(delete(" "), r="[EOS]")
     verbalizer.optimize().write("wetext/fsts/en/tn/verbalizer.fst")
 
