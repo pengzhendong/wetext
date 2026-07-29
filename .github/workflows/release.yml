@@ -19,14 +19,16 @@ jobs:
         run: |
           echo "${{ inputs.version }}" > VERSION
           git clone --depth 1 https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
-          python -m pip install -U /tmp/WeTextProcessing build modelscope setuptools twine wheel
+          python -m pip install -U /tmp/WeTextProcessing build modelscope-hub setuptools twine wheel
           PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
           python -m build
       - name: Upload FSTs to ModelScope
         env:
-          MODELSCOPE_TOKEN: ${{ secrets.MODELSCOPE_TOKEN }}
+          MODELSCOPE_API_TOKEN: ${{ secrets.MODELSCOPE_TOKEN }}
         run: |
-          modelscope upload pengzhendong/wetext wetext/fsts --token "$MODELSCOPE_TOKEN"
+          ms login --token "$MODELSCOPE_API_TOKEN"
+          ms whoami
+          ms upload pengzhendong/wetext wetext/fsts --repo-type model --commit-message "Update FSTs for ${{ inputs.version }}"
       - name: Upload distributions to PyPI
         env:
           TWINE_USERNAME: __token__
