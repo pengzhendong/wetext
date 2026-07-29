@@ -21,7 +21,7 @@ from typing import Literal, Optional
 import contractions
 import kaldifst
 
-from wetext.alignment import NormalizationMapping, NormalizationResult
+from wetext.alignment import NormalizationCandidate, NormalizationMapping, NormalizationResult
 from wetext.config import NormalizerConfig
 from wetext.constants import FSTS, FST_PATHS
 from wetext.fst_utils import (
@@ -345,6 +345,47 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
         )
         outputs = [output]
     return outputs[0] if nbest == 1 else outputs
+
+
+def normalize_candidates(text: str, config: Optional[NormalizerConfig] = None, nbest: int = 1, **kwargs):
+    """Return distinct outputs together with their WFST ranking costs.
+
+    Costs are tropical weights: lower values rank first. They are not
+    probabilities or calibrated confidence scores.
+    """
+
+    _validate_nbest(nbest)
+    config = replace(config or NormalizerConfig(), **kwargs)
+    if config.fix_contractions and "'" in text:
+        text = contractions.fix(text)
+    prepared = text.strip()
+    lang = config.lang
+    if lang == "auto":
+        lang = get_lang(prepared)
+    if not should_normalize(prepared, lang, config.operator, config.remove_erhua):
+        output = preprocess(prepared, config.traditional_to_simple)
+        output = postprocess(
+            output,
+            config.full_to_half,
+            config.remove_interjections,
+            config.remove_puncts,
+            config.tag_oov,
+        )
+        return [NormalizationCandidate(output, 0.0, 0.0, 0.0, 0, 0)]
+
+    tagger, verbalizer = _graphs(config, lang)
+    candidates = _normalization_candidates(prepared, lang, config.operator, tagger, verbalizer, nbest)
+    return [
+        NormalizationCandidate(
+            text=candidate.output,
+            cost=candidate.weight,
+            tagger_cost=candidate.tagger_weight,
+            verbalizer_cost=candidate.verbalizer_weight,
+            tagger_rank=candidate.tagger_rank,
+            verbalizer_rank=candidate.verbalizer_rank,
+        )
+        for candidate in candidates
+    ]
 
 
 def normalize_with_mapping(

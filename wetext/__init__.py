@@ -14,6 +14,7 @@
 
 from wetext.utils import (
     normalize,
+    normalize_candidates,
     normalize_with_mapping,
     postprocess,
     preprocess,
@@ -22,15 +23,17 @@ from wetext.utils import (
     tag,
     verbalize,
 )
-from wetext.alignment import AlignmentError, NormalizationMapping, NormalizationResult
+from wetext.alignment import AlignmentError, NormalizationCandidate, NormalizationMapping, NormalizationResult
 from wetext.wetext import Normalizer
 
 __all__ = [
     "AlignmentError",
+    "NormalizationCandidate",
     "NormalizationMapping",
     "NormalizationResult",
     "Normalizer",
     "normalize",
+    "normalize_candidates",
     "normalize_with_mapping",
     "postprocess",
     "preprocess",

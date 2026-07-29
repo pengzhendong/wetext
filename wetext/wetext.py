@@ -15,7 +15,7 @@
 from dataclasses import asdict, replace
 
 from wetext.config import NormalizerConfig
-from wetext.utils import normalize, normalize_with_mapping
+from wetext.utils import normalize, normalize_candidates, normalize_with_mapping
 
 
 class Normalizer:
@@ -41,3 +41,7 @@ class Normalizer:
             include_identity=include_identity,
             **asdict(config),
         )
+
+    def normalize_candidates(self, text: str, nbest: int = 1, **kwargs):
+        config = replace(self.config, **kwargs)
+        return normalize_candidates(text, nbest=nbest, **asdict(config))

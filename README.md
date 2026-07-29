@@ -69,6 +69,10 @@ normalizer = Normalizer(lang="en", operator="tn")
 print(normalizer.normalize("4x6", nbest=3))
 # ["four by six", "four times six", "four x six"]
 
+# Include tropical WFST costs (lower is better; costs are not probabilities)
+candidates = normalizer.normalize_candidates("4x6", nbest=3)
+print(candidates[0].text, candidates[0].cost)
+
 # Exact token spans traced through the selected WFST path
 normalizer = Normalizer(lang="zh", operator="itn")
 result = normalizer.normalize_with_mapping("价格是十三点五元")

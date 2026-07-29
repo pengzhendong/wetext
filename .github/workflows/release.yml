@@ -6,6 +6,11 @@ on:
       version:
         description: "Build version (e.g. 0.0.1)"
         required: true
+      upload_fsts:
+        description: "Upload generated FSTs to ModelScope"
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -23,6 +28,7 @@ jobs:
           PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
           python -m build
       - name: Upload FSTs to ModelScope
+        if: ${{ inputs.upload_fsts }}
         env:
           MODELSCOPE_API_TOKEN: ${{ secrets.MODELSCOPE_TOKEN }}
         run: |

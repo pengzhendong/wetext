@@ -22,6 +22,19 @@ class NBestTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             normalize("test", nbest=True)
 
+    def test_candidates_expose_costs_in_nbest_order(self):
+        candidates = Normalizer(lang="en", operator="tn").normalize_candidates("4x6", nbest=3)
+        self.assertEqual(
+            [candidate.text for candidate in candidates],
+            ["four by six", "four times six", "four x six"],
+        )
+        self.assertLessEqual(candidates[0].cost, candidates[1].cost)
+        self.assertLess(candidates[1].cost, candidates[2].cost)
+        self.assertEqual(
+            set(candidates[0].as_dict()),
+            {"text", "cost", "tagger_cost", "verbalizer_cost", "tagger_rank", "verbalizer_rank"},
+        )
+
 
 class MappingTest(unittest.TestCase):
     def test_chinese_money_mapping(self):
