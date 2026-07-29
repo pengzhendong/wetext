@@ -19,6 +19,10 @@ dependencies = [
     "kaldifst"
 ]
 
+[tool.ruff]
+line-length = 120
+target-version = "py37"
+
 [project.scripts]
 wetext = "wetext.cli:main"
 

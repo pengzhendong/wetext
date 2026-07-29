@@ -14,6 +14,7 @@
 
 from wetext.utils import (
     normalize,
+    normalize_with_mapping,
     postprocess,
     preprocess,
     reorder,
@@ -21,6 +22,20 @@ from wetext.utils import (
     tag,
     verbalize,
 )
+from wetext.alignment import AlignmentError, NormalizationMapping, NormalizationResult
 from wetext.wetext import Normalizer
 
-__all__ = ["Normalizer", "normalize", "postprocess", "preprocess", "reorder", "should_normalize", "tag", "verbalize"]
+__all__ = [
+    "AlignmentError",
+    "NormalizationMapping",
+    "NormalizationResult",
+    "Normalizer",
+    "normalize",
+    "normalize_with_mapping",
+    "postprocess",
+    "preprocess",
+    "reorder",
+    "should_normalize",
+    "tag",
+    "verbalize",
+]

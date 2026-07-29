@@ -61,6 +61,24 @@ result = normalizer.normalize("twenty three dollars and fifty cents")
 print(result)  # $23.50
 ```
 
+#### N-best and exact mappings
+
+```python
+# Distinct candidates in official WFST weight order
+normalizer = Normalizer(lang="en", operator="tn")
+print(normalizer.normalize("4x6", nbest=3))
+# ["four by six", "four times six", "four x six"]
+
+# Exact token spans traced through the selected WFST path
+normalizer = Normalizer(lang="zh", operator="itn")
+result = normalizer.normalize_with_mapping("价格是十三点五元")
+print(result.output_text)  # 价格是¥13.5
+print(result.mappings[0].as_dict())
+```
+
+`normalize_with_mapping()` cannot be combined with `fix_contractions=True`,
+because contraction expansion is not represented by the WFST path.
+
 ### Command Line Interface
 
 ```bash

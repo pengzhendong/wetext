@@ -30,6 +30,10 @@ def load_fst(fst_path) -> normalizer:
     return normalizer(str(fst_path))
 
 
+def fst_path(fst_path):
+    return str(files("wetext.fsts").joinpath(fst_path))
+
+
 EOS = "<EOS>"
 TN_ORDERS = {
     "date": ["year", "month", "day"],
@@ -43,16 +47,15 @@ EN_TN_ORDERS = {
     "money": ["integer_part", "fractional_part", "quantity", "currency_maj"],
 }
 ITN_ORDERS = {
-    "date": ["year", "month", "day"],
+    "date": ["year", "month", "day", "preserve_order"],
     "fraction": ["sign", "numerator", "denominator"],
-    "measure": ["numerator", "denominator", "value"],
-    "money": ["currency", "value", "decimal"],
-    "time": ["hour", "minute", "second", "noon"],
-}
-EN_ITN_ORDERS = {
+    "measure": ["numerator", "denominator", "value", "units"],
     "money": ["currency", "value", "decimal", "quantity"],
-    "time": ["hour", "minute", "noon", "zone"],
+    "time": ["hour", "minute", "second", "noon", "zone"],
+    "telephone": ["country_code", "number_part"],
+    "electronic": ["username", "domain", "protocol"],
 }
+EN_ITN_ORDERS = ITN_ORDERS
 FSTS = {
     "preprocess": {
         "traditional_to_simple": load_fst("traditional_to_simple.fst"),
@@ -95,5 +98,39 @@ FSTS = {
         "remove_interjections": load_fst("remove_interjections.fst"),
         "remove_puncts": load_fst("remove_puncts.fst"),
         "tag_oov": load_fst("tag_oov.fst"),
+    },
+}
+
+FST_PATHS = {
+    "preprocess": {"traditional_to_simple": fst_path("traditional_to_simple.fst")},
+    "postprocess": {
+        "full_to_half": fst_path("full_to_half.fst"),
+        "remove_interjections": fst_path("remove_interjections.fst"),
+        "remove_puncts": fst_path("remove_puncts.fst"),
+        "tag_oov": fst_path("tag_oov.fst"),
+    },
+    "en": {
+        "tn": {"tagger": fst_path("en/tn/tagger.fst"), "verbalizer": fst_path("en/tn/verbalizer.fst")},
+        "itn": {"tagger": fst_path("en/itn/tagger.fst"), "verbalizer": fst_path("en/itn/verbalizer.fst")},
+    },
+    "zh": {
+        "tn": {
+            "tagger": fst_path("zh/tn/tagger.fst"),
+            "verbalizer": fst_path("zh/tn/verbalizer.fst"),
+            "verbalizer_remove_erhua": fst_path("zh/tn/verbalizer_remove_erhua.fst"),
+        },
+        "itn": {
+            "tagger": fst_path("zh/itn/tagger.fst"),
+            "tagger_enable_0_to_9": fst_path("zh/itn/tagger_enable_0_to_9.fst"),
+            "verbalizer": fst_path("zh/itn/verbalizer.fst"),
+        },
+    },
+    "ja": {
+        "tn": {"tagger": fst_path("ja/tn/tagger.fst"), "verbalizer": fst_path("ja/tn/verbalizer.fst")},
+        "itn": {
+            "tagger": fst_path("ja/itn/tagger.fst"),
+            "tagger_enable_0_to_9": fst_path("ja/itn/tagger_enable_0_to_9.fst"),
+            "verbalizer": fst_path("ja/itn/verbalizer.fst"),
+        },
     },
 }
