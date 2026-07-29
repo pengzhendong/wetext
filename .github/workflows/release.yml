@@ -12,14 +12,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Publish
+      - uses: actions/checkout@v4
+        with:
+          repository: wenet-e2e/WeTextProcessing
+          path: WeTextProcessing
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build FSTs and distributions
+        run: |
+          echo "${{ inputs.version }}" > VERSION
+          python -m pip install -U ./WeTextProcessing build modelscope setuptools twine wheel
+          PYTHONPATH="$GITHUB_WORKSPACE/WeTextProcessing" python build_fsts.py
+          python -m build
+      - name: Upload FSTs to ModelScope
+        env:
+          MODELSCOPE_TOKEN: ${{ secrets.MODELSCOPE_TOKEN }}
+        run: |
+          modelscope upload pengzhendong/wetext wetext/fsts --token "$MODELSCOPE_TOKEN"
+      - name: Upload distributions to PyPI
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
-        run: |
-          echo ${{ inputs.version }} > VERSION
-          python -m venv .venv
-          source .venv/bin/activate
-          python -m pip install -U build setuptools twine wheel
-          python -m build
-          python -m twine upload dist/*
+        run: python -m twine upload dist/*
