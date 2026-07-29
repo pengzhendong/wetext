@@ -98,11 +98,7 @@ class UniqueOutputPathStream:
             return
         limit = 1 if self.limit == 0 else self.limit * 2
         paths = shortest_unique_paths(self.lattice, limit)
-        self.items = [
-            WeightedOutput(text, weight, -1)
-            for text, weight in paths
-            if text not in self.yielded
-        ]
+        self.items = [WeightedOutput(text, weight, -1) for text, weight in paths if text not in self.yielded]
         self.limit = limit
         if len(paths) < limit:
             self.exhausted = True
@@ -208,7 +204,9 @@ def trace_input_spans(input_text, output_text, graph, output_spans):
         if token_index < len(output_byte_spans):
             start, end = output_byte_spans[token_index]
             if arc.ilabel and start <= output_offset < end and (output_offset != start or arc.olabel):
-                deleted_leading_space = not arc.olabel and input_whitespace[input_offset] and starts[token_index] is None
+                deleted_leading_space = (
+                    not arc.olabel and input_whitespace[input_offset] and starts[token_index] is None
+                )
                 if not deleted_leading_space:
                     owner = token_index
             elif arc.ilabel and arc.olabel and output_offset + 1 == start and not input_whitespace[input_offset]:

@@ -112,7 +112,14 @@ def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
         )
         heapq.heappush(
             frontier,
-            (candidate.weight, candidate.tagger_rank, candidate.verbalizer_rank, activated, candidate, verbalizer_stream),
+            (
+                candidate.weight,
+                candidate.tagger_rank,
+                candidate.verbalizer_rank,
+                activated,
+                candidate,
+                verbalizer_stream,
+            ),
         )
         return True
 
@@ -341,11 +348,7 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
 
 
 def normalize_with_mapping(
-    text: str,
-    config: Optional[NormalizerConfig] = None,
-    nbest: int = 1,
-    include_identity: bool = False,
-    **kwargs
+    text: str, config: Optional[NormalizerConfig] = None, nbest: int = 1, include_identity: bool = False, **kwargs
 ):
     _validate_nbest(nbest)
     config = replace(config or NormalizerConfig(), **kwargs)
