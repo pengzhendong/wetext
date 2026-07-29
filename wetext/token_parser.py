@@ -17,9 +17,15 @@ import string
 from wetext.constants import EN_ITN_ORDERS, EN_TN_ORDERS, EOS, ITN_ORDERS, TN_ORDERS
 
 
+def escape_value(value):
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
 class Token:
-    def __init__(self, name):
+    def __init__(self, name, start=None):
         self.name = name
+        self.start = start
+        self.end = None
         self.order = []
         self.members = {}
 
@@ -29,14 +35,16 @@ class Token:
 
     def string(self, orders):
         output = self.name + " {"
+        order = self.order
         if self.name in orders.keys():
             if "preserve_order" not in self.members.keys() or self.members["preserve_order"] != "true":
-                self.order = orders[self.name]
+                canonical_order = orders[self.name]
+                order = canonical_order + [key for key in self.order if key not in canonical_order]
 
-        for key in self.order:
+        for key in order:
             if key not in self.members.keys():
                 continue
-            output += ' {}: "{}"'.format(key, self.members[key])
+            output += ' {}: "{}"'.format(key, escape_value(self.members[key]))
         return output + " }"
 
 
@@ -117,10 +125,11 @@ class TokenParser:
     def parse(self, input):
         self.load(input)
         while self.parse_ws():
+            token_start = self.index
             name = self.parse_key()
             self.parse_chars(" { ")
 
-            token = Token(name)
+            token = Token(name, token_start)
             while self.parse_ws():
                 if self.char == "}":
                     self.parse_char("}")
@@ -130,11 +139,24 @@ class TokenParser:
                 value = self.parse_value()
                 self.parse_char('"')
                 token.append(key, value)
+            token.end = len(self.text) if self.char == EOS else self.index
             self.tokens.append(token)
 
     def reorder(self, input):
+        output, _ = self.reorder_with_spans(input)
+        return output
+
+    def reorder_with_spans(self, input):
         self.parse(input)
-        output = ""
+        serialized = []
+        spans = []
+        offset = 0
         for token in self.tokens:
-            output += token.string(self.orders) + " "
-        return output.strip()
+            value = token.string(self.orders)
+            if serialized:
+                offset += 1
+            start = offset
+            offset += len(value)
+            spans.append((start, offset))
+            serialized.append(value)
+        return " ".join(serialized), tuple(spans)

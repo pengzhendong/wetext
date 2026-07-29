@@ -15,14 +15,14 @@
 from dataclasses import asdict, replace
 
 from wetext.config import NormalizerConfig
-from wetext.utils import normalize
+from wetext.utils import normalize, normalize_with_mapping
 
 
 class Normalizer:
     def __init__(self, **kwargs):
         self.config = NormalizerConfig(**kwargs)
 
-    def normalize(self, text: str, **kwargs) -> str:
+    def normalize(self, text: str, nbest: int = 1, **kwargs):
         """
         Normalize the text.
 
@@ -31,4 +31,13 @@ class Normalizer:
             **kwargs: The keyword arguments to override the config.
         """
         config = replace(self.config, **kwargs)
-        return normalize(text, **asdict(config))
+        return normalize(text, nbest=nbest, **asdict(config))
+
+    def normalize_with_mapping(self, text: str, nbest: int = 1, include_identity: bool = False, **kwargs):
+        config = replace(self.config, **kwargs)
+        return normalize_with_mapping(
+            text,
+            nbest=nbest,
+            include_identity=include_identity,
+            **asdict(config),
+        )
