@@ -12,18 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/checkout@v4
-        with:
-          repository: wenet-e2e/WeTextProcessing
-          path: WeTextProcessing
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Build FSTs and distributions
         run: |
           echo "${{ inputs.version }}" > VERSION
-          python -m pip install -U ./WeTextProcessing build modelscope setuptools twine wheel
-          PYTHONPATH="$GITHUB_WORKSPACE/WeTextProcessing" python build_fsts.py
+          git clone --depth 1 https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
+          python -m pip install -U /tmp/WeTextProcessing build modelscope setuptools twine wheel
+          PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
           python -m build
       - name: Upload FSTs to ModelScope
         env:
