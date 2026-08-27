@@ -33,7 +33,7 @@ FST_DIR = Path("wetext/fsts")
 
 
 class _StreamingPrefixMixin:
-    """Capture the semantic classifier graph used by streaming ITN.
+    """Capture the semantic classifier graph used by streaming normalization.
 
     The normal tagger contains catch-all character/word rules, so every input
     is accepted and it cannot tell the runtime whether a trailing fragment may
@@ -61,6 +61,18 @@ class StreamingEnInverseNormalizer(_StreamingPrefixMixin, EnInverseNormalizer):
 
 
 class StreamingJaInverseNormalizer(_StreamingPrefixMixin, JaInverseNormalizer):
+    pass
+
+
+class StreamingZhNormalizer(_StreamingPrefixMixin, ZhNormalizer):
+    pass
+
+
+class StreamingEnNormalizer(_StreamingPrefixMixin, EnNormalizer):
+    pass
+
+
+class StreamingJaNormalizer(_StreamingPrefixMixin, JaNormalizer):
     pass
 
 
@@ -100,9 +112,10 @@ def build_zh_tn():
         "full_to_half": False,
         "tag_oov": False,
     }
-    normalizer = ZhNormalizer(remove_erhua=False, **options)
+    normalizer = StreamingZhNormalizer(remove_erhua=False, **options)
     write_graph(normalizer.tagger, "zh/tn/tagger.fst")
     write_graph(normalizer.verbalizer, "zh/tn/verbalizer.fst")
+    write_graph(normalizer.stream_prefix_tagger, "zh/tn/prefix.fst")
 
     remove_erhua = ZhNormalizer(remove_erhua=True, **options)
     write_graph(remove_erhua.verbalizer, "zh/tn/verbalizer_remove_erhua.fst")
@@ -126,9 +139,10 @@ def build_zh_itn():
 
 
 def build_en():
-    normalizer = EnNormalizer(cache_dir=False)
+    normalizer = StreamingEnNormalizer(cache_dir=False)
     write_graph(normalizer.tagger, "en/tn/tagger.fst")
     write_graph(normalizer.verbalizer, "en/tn/verbalizer.fst")
+    write_graph(normalizer.stream_prefix_tagger, "en/tn/prefix.fst")
 
     inverse_normalizer = StreamingEnInverseNormalizer(cache_dir=False)
     write_graph(inverse_normalizer.tagger, "en/itn/tagger.fst")
@@ -137,7 +151,7 @@ def build_en():
 
 
 def build_ja_tn():
-    normalizer = JaNormalizer(
+    normalizer = StreamingJaNormalizer(
         cache_dir=False,
         transliterate=False,
         remove_interjections=False,
@@ -147,6 +161,7 @@ def build_ja_tn():
     )
     write_graph(normalizer.tagger, "ja/tn/tagger.fst")
     write_graph(normalizer.verbalizer, "ja/tn/verbalizer.fst")
+    write_graph(normalizer.stream_prefix_tagger, "ja/tn/prefix.fst")
 
 
 def build_ja_itn():

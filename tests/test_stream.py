@@ -6,7 +6,7 @@ from wetext import StreamNormalizer
 RULE = "二十米"
 
 
-def fake_match_prefix_position(text, _lang, _enable_0_to_9):
+def fake_match_prefix_position(text, _lang, _operator, _enable_0_to_9):
     for index in range(len(text)):
         if RULE.startswith(text[index:]):
             return index
@@ -33,13 +33,52 @@ def test_stream_owns_pending_state_and_returns_current_text():
     assert stream.flush() == "今天有20m"
 
 
-def test_missing_prefix_graph_buffers_until_flush(monkeypatch):
+@pytest.mark.parametrize("operator", ["itn", "tn"])
+def test_missing_prefix_graph_buffers_until_flush(monkeypatch, operator):
     monkeypatch.setattr(streaming, "_match_prefix_position", lambda *_args: None)
-    stream = StreamNormalizer(lang="zh")
+    stream = StreamNormalizer(lang="zh", operator=operator)
 
     assert stream.feed("二十") == "20"
     assert stream.feed("米") == "20m"
     assert stream.flush() == "20m"
+
+
+def test_tn_selects_tn_prefix_graph(monkeypatch):
+    operators = []
+
+    def match(text, _lang, operator, _enable_0_to_9):
+        operators.append(operator)
+        return len(text)
+
+    monkeypatch.setattr(streaming, "_match_prefix_position", match)
+    stream = StreamNormalizer(lang="zh", operator="tn")
+
+    assert stream.feed("价格") == "价格"
+    assert operators == ["tn"]
+
+
+def test_tn_keeps_cross_chunk_decimal_and_unit_together(monkeypatch):
+    rule = "12.5元"
+
+    def match(text, _lang, operator, _enable_0_to_9):
+        assert operator == "tn"
+        for index in range(len(text)):
+            if rule.startswith(text[index:]):
+                return index
+        return len(text)
+
+    def normalize_tn(text, config):
+        assert config.operator == "tn"
+        return text.replace(rule, "十二点五元").replace("12.5", "十二点五")
+
+    monkeypatch.setattr(streaming, "_match_prefix_position", match)
+    monkeypatch.setattr(streaming, "normalize", normalize_tn)
+    stream = StreamNormalizer(lang="zh", operator="tn")
+
+    assert stream.feed("价格是12") == "价格是12"
+    assert stream.feed(".5") == "价格是十二点五"
+    assert stream.feed("元") == "价格是十二点五元"
+    assert stream.flush() == "价格是十二点五元"
 
 
 def test_ascii_token_is_not_committed_across_chunk_boundary(monkeypatch):
@@ -146,8 +185,8 @@ def test_flush_is_idempotent_but_feed_requires_reset():
     assert stream.feed("新句子") == "新句子"
 
 
-@pytest.mark.parametrize("kwargs", [{}, {"lang": "zh", "operator": "tn"}])
-def test_stream_requires_fixed_language_itn(kwargs):
+@pytest.mark.parametrize("kwargs", [{}, {"lang": "zh", "operator": "invalid"}])
+def test_stream_requires_fixed_language_and_valid_operator(kwargs):
     with pytest.raises(ValueError):
         StreamNormalizer(**kwargs)
 

@@ -61,9 +61,9 @@ result = normalizer.normalize("twenty three dollars and fifty cents")
 print(result)  # $23.50
 ```
 
-#### Streaming ITN
+#### Streaming TN and ITN
 
-`StreamNormalizer` keeps unfinished ITN context internally. Pass only the new
+`StreamNormalizer` keeps unfinished normalization context internally. Pass only the new
 text on each call; `feed()` returns the complete current output. Use one
 instance per utterance and call `flush()` when the utterance ends.
 
@@ -74,9 +74,14 @@ stream = StreamNormalizer(lang="zh", operator="itn")
 print(stream.feed("今天是二零"))  # 今天是二零
 print(stream.feed("二六年"))  # 今天是2026年
 print(stream.flush())  # 今天是2026年
+
+stream = StreamNormalizer(lang="zh", operator="tn")
+print(stream.feed("价格是12"))  # 价格是十二
+print(stream.feed(".5元"))  # 价格是十二点五元
+print(stream.flush())  # 价格是十二点五元
 ```
 
-Streaming currently requires an explicit language and supports ITN. Model
+Streaming requires an explicit language and supports TN and ITN. Model
 bundles built before streaming prefix graphs were introduced remain compatible;
 they retain more internal context until `flush()`. For an unusually long
 unfinished expression, only its tail is normalized for the current display;
