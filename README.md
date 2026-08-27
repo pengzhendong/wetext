@@ -72,8 +72,8 @@ from wetext import StreamNormalizer
 
 stream = StreamNormalizer(lang="zh", operator="itn")
 print(stream.feed("今天是二零"))  # 今天是二零
-print(stream.feed("二六年"))      # 今天是2026年
-print(stream.flush())              # 今天是2026年
+print(stream.feed("二六年"))  # 今天是2026年
+print(stream.flush())  # 今天是2026年
 ```
 
 Streaming currently requires an explicit language and supports ITN. Model

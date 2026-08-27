@@ -45,9 +45,7 @@ class _StreamingPrefixMixin:
 
     def tagger_union(self, rule_specs):
         rule_specs = tuple(rule_specs)
-        semantic_rules = tuple(
-            spec for spec in rule_specs if spec.rule.name not in self._stream_fallback_rules
-        )
+        semantic_rules = tuple(spec for spec in rule_specs if spec.rule.name not in self._stream_fallback_rules)
         if not semantic_rules:
             raise RuntimeError("streaming prefix graph has no semantic rules")
         self.stream_prefix_tagger = super().tagger_union(semantic_rules).star
