@@ -1,4 +1,4 @@
-"""Stateful streaming inverse text normalization."""
+"""Stateful streaming text normalization."""
 
 from wetext.config import NormalizerConfig
 from wetext.constants import get_prefix_fst
@@ -15,13 +15,13 @@ def _is_ascii_token_char(char):
     return char.isascii() and (char.isalnum() or char in _ASCII_TOKEN_EXTRA)
 
 
-def _match_prefix_position(text, lang, enable_0_to_9):
-    """Return the earliest suffix that may grow into a semantic ITN rule.
+def _match_prefix_position(text, lang, operator, enable_0_to_9):
+    """Return the earliest suffix that may grow into a semantic rule.
 
     ``None`` means that the installed model bundle predates streaming support.
     """
 
-    graph = get_prefix_fst(lang, enable_0_to_9)
+    graph = get_prefix_fst(lang, operator, enable_0_to_9)
     if graph is None:
         return None
     for index in range(len(text)):
@@ -40,8 +40,8 @@ class StreamNormalizer:
     def __init__(self, **kwargs):
         kwargs.setdefault("operator", "itn")
         self.config = NormalizerConfig(**kwargs)
-        if self.config.operator != "itn":
-            raise ValueError("StreamNormalizer currently supports operator='itn' only")
+        if self.config.operator not in ("tn", "itn"):
+            raise ValueError("StreamNormalizer requires operator='tn' or operator='itn'")
         if self.config.lang == "auto":
             raise ValueError("StreamNormalizer requires an explicit lang")
         self.reset()
@@ -61,7 +61,7 @@ class StreamNormalizer:
         if self._committed_text:
             leading = text[: len(text) - len(text.lstrip())]
             if leading and self.config.lang == "en":
-                # The English ITN graph canonicalizes every internal
+                # The English normalization graphs canonicalize every internal
                 # whitespace run to one space.
                 leading = " "
         return leading + normalize(stripped, config=self.config)
@@ -92,12 +92,18 @@ class StreamNormalizer:
             head_position = _match_prefix_position(
                 text[:_PREFIX_PROBE_CHARS],
                 self.config.lang,
+                self.config.operator,
                 self.config.enable_0_to_9,
             )
             if head_position is None or head_position == 0:
                 return 0
 
-        safe_position = _match_prefix_position(text, self.config.lang, self.config.enable_0_to_9)
+        safe_position = _match_prefix_position(
+            text,
+            self.config.lang,
+            self.config.operator,
+            self.config.enable_0_to_9,
+        )
         if safe_position is None:
             return 0
 
@@ -108,7 +114,12 @@ class StreamNormalizer:
         # always terminates.
         while 0 < safe_position < len(text):
             candidate = text[:safe_position]
-            rollback = _match_prefix_position(candidate, self.config.lang, self.config.enable_0_to_9)
+            rollback = _match_prefix_position(
+                candidate,
+                self.config.lang,
+                self.config.operator,
+                self.config.enable_0_to_9,
+            )
             if rollback is None or rollback >= len(candidate):
                 break
             safe_position = rollback
