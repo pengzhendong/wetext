@@ -32,9 +32,9 @@ jobs:
         env:
           MODELSCOPE_API_TOKEN: ${{ secrets.MODELSCOPE_TOKEN }}
         run: |
-          ms login --token "$MODELSCOPE_API_TOKEN"
-          ms whoami
-          ms upload pengzhendong/wetext wetext/fsts --repo-type model --commit-message "Update FSTs for ${{ inputs.version }}"
+          modelscope-hub login --token "$MODELSCOPE_API_TOKEN"
+          modelscope-hub whoami
+          modelscope-hub upload pengzhendong/wetext wetext/fsts --repo-type model --commit-message "Update FSTs for ${{ inputs.version }}"
       - name: Upload distributions to PyPI
         env:
           TWINE_USERNAME: __token__
