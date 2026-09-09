@@ -156,3 +156,15 @@ def get_prefix_fst(lang, operator, enable_0_to_9=False):
     for state in kaldifst.StateIterator(graph):
         graph.set_final(state, 0.0)
     return graph
+
+
+@lru_cache(maxsize=None)
+def get_prefix_matcher_fst(lang, operator, enable_0_to_9=False):
+    """Load the optional input-only graph for batched suffix search."""
+
+    use_digit_graph = operator == "itn" and enable_0_to_9 and lang != "en"
+    filename = "prefix_matcher_enable_0_to_9.fst" if use_digit_graph else "prefix_matcher.fst"
+    path = Path(fst_path(f"{lang}/{operator}/{filename}"))
+    if not path.is_file():
+        return None
+    return kaldifst.StdVectorFst.read(str(path))

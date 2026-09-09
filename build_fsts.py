@@ -21,6 +21,8 @@ drifting whenever upstream adds or restructures a rule.
 
 from pathlib import Path
 
+import pynini
+
 from itn.chinese.inverse_normalizer import InverseNormalizer as ZhInverseNormalizer
 from itn.english.inverse_normalizer import InverseNormalizer as EnInverseNormalizer
 from itn.japanese.inverse_normalizer import InverseNormalizer as JaInverseNormalizer
@@ -82,6 +84,24 @@ def write_graph(graph, path):
     graph.optimize().write(str(path))
 
 
+def write_prefix_graph(graph, path):
+    """Write the semantic prefix graph and its stream-search matcher.
+
+    The matcher keeps only the input language and removes weights because
+    streaming boundary detection needs reachability, not normalization output
+    or rule ranking. Every state is final so the graph accepts prefixes of
+    semantic rules that may be completed by future input.
+    """
+
+    write_graph(graph, path)
+    matcher = pynini.arcmap(pynini.project(graph, "input"), map_type="rmweight")
+    for state in matcher.states():
+        matcher.set_final(state)
+    matcher_path = Path(path).with_name(Path(path).name.replace("prefix", "prefix_matcher", 1))
+    matcher_path = FST_DIR / matcher_path
+    matcher.write(str(matcher_path))
+
+
 def build_processors():
     configs = {
         "traditional_to_simple.fst": {"traditional_to_simple": True},
@@ -115,7 +135,7 @@ def build_zh_tn():
     normalizer = StreamingZhNormalizer(remove_erhua=False, **options)
     write_graph(normalizer.tagger, "zh/tn/tagger.fst")
     write_graph(normalizer.verbalizer, "zh/tn/verbalizer.fst")
-    write_graph(normalizer.stream_prefix_tagger, "zh/tn/prefix.fst")
+    write_prefix_graph(normalizer.stream_prefix_tagger, "zh/tn/prefix.fst")
 
     remove_erhua = ZhNormalizer(remove_erhua=True, **options)
     write_graph(remove_erhua.verbalizer, "zh/tn/verbalizer_remove_erhua.fst")
@@ -131,23 +151,23 @@ def build_zh_itn():
     normalizer = StreamingZhInverseNormalizer(enable_0_to_9=False, **options)
     write_graph(normalizer.tagger, "zh/itn/tagger.fst")
     write_graph(normalizer.verbalizer, "zh/itn/verbalizer.fst")
-    write_graph(normalizer.stream_prefix_tagger, "zh/itn/prefix.fst")
+    write_prefix_graph(normalizer.stream_prefix_tagger, "zh/itn/prefix.fst")
 
     enable_0_to_9 = StreamingZhInverseNormalizer(enable_0_to_9=True, **options)
     write_graph(enable_0_to_9.tagger, "zh/itn/tagger_enable_0_to_9.fst")
-    write_graph(enable_0_to_9.stream_prefix_tagger, "zh/itn/prefix_enable_0_to_9.fst")
+    write_prefix_graph(enable_0_to_9.stream_prefix_tagger, "zh/itn/prefix_enable_0_to_9.fst")
 
 
 def build_en():
     normalizer = StreamingEnNormalizer(cache_dir=False)
     write_graph(normalizer.tagger, "en/tn/tagger.fst")
     write_graph(normalizer.verbalizer, "en/tn/verbalizer.fst")
-    write_graph(normalizer.stream_prefix_tagger, "en/tn/prefix.fst")
+    write_prefix_graph(normalizer.stream_prefix_tagger, "en/tn/prefix.fst")
 
     inverse_normalizer = StreamingEnInverseNormalizer(cache_dir=False)
     write_graph(inverse_normalizer.tagger, "en/itn/tagger.fst")
     write_graph(inverse_normalizer.verbalizer, "en/itn/verbalizer.fst")
-    write_graph(inverse_normalizer.stream_prefix_tagger, "en/itn/prefix.fst")
+    write_prefix_graph(inverse_normalizer.stream_prefix_tagger, "en/itn/prefix.fst")
 
 
 def build_ja_tn():
@@ -161,7 +181,7 @@ def build_ja_tn():
     )
     write_graph(normalizer.tagger, "ja/tn/tagger.fst")
     write_graph(normalizer.verbalizer, "ja/tn/verbalizer.fst")
-    write_graph(normalizer.stream_prefix_tagger, "ja/tn/prefix.fst")
+    write_prefix_graph(normalizer.stream_prefix_tagger, "ja/tn/prefix.fst")
 
 
 def build_ja_itn():
@@ -174,11 +194,11 @@ def build_ja_itn():
     normalizer = StreamingJaInverseNormalizer(enable_0_to_9=False, **options)
     write_graph(normalizer.tagger, "ja/itn/tagger.fst")
     write_graph(normalizer.verbalizer, "ja/itn/verbalizer.fst")
-    write_graph(normalizer.stream_prefix_tagger, "ja/itn/prefix.fst")
+    write_prefix_graph(normalizer.stream_prefix_tagger, "ja/itn/prefix.fst")
 
     enable_0_to_9 = StreamingJaInverseNormalizer(enable_0_to_9=True, **options)
     write_graph(enable_0_to_9.tagger, "ja/itn/tagger_enable_0_to_9.fst")
-    write_graph(enable_0_to_9.stream_prefix_tagger, "ja/itn/prefix_enable_0_to_9.fst")
+    write_prefix_graph(enable_0_to_9.stream_prefix_tagger, "ja/itn/prefix_enable_0_to_9.fst")
 
 
 def main():
