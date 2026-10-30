@@ -1,86 +1,170 @@
+<div align="center">
+
 # WeTextProcessing Runtime
+
+**Multilingual text normalization for speech applications, without a Pynini runtime dependency.**
+
+[Quick start](#quick-start) · [Languages](#supported-languages) · [Python API](#python-api) · [Streaming](#streaming) · [Development](#development-and-model-builds)
 
 [![PyPI](https://img.shields.io/pypi/v/wetext)](https://pypi.org/project/wetext/)
 [![License](https://img.shields.io/github/license/pengzhendong/wetext)](LICENSE)
 
-Python runtime for WeTextProcessing (does not depend on Pynini).
+</div>
 
-WeTextProcessing is a text processing library that provides text normalization (TN) and inverse text normalization (ITN) capabilities for Chinese, English, Japanese and Korean text. It uses Finite State Transducers (FSTs) for efficient text processing.
+`wetext` runs the weighted finite-state transducer (WFST) grammars from
+[WeTextProcessing](https://github.com/wenet-e2e/WeTextProcessing) using
+[kaldifst](https://github.com/k2-fsa/kaldifst). Published wheels bundle the compiled
+models; Pynini is needed only when building models from source.
 
-## Features
+- **TN and ITN** — convert written expressions into spoken forms for speech synthesis, or spoken expressions into written forms after speech recognition.
+- **Four languages** — Chinese, English, Japanese, and Korean through one Python API and CLI.
+- **Inspectable results** — unique n-best candidates, WFST costs, and exact input/output token spans.
+- **Streaming input** — feed new text chunks and finalize each utterance with `flush()`.
+- **On-demand models** — load and cache only the languages and processing options your application uses.
 
-- Text Normalization (TN) for Chinese, English, Japanese and Korean
-- Inverse Text Normalization (ITN) for Chinese, English, Japanese and Korean
-- Traditional to Simplified Chinese conversion
-- Full-width to Half-width character conversion
-- Interjection removal
-- Punctuation removal
-- Out-of-vocabulary (OOV) word tagging
-- Erhua removal (for Chinese)
-- 0-to-9 conversion (for Chinese and Japanese ITN)
+## Supported languages
 
-## Installation
+| Language | Code | TN | ITN | Example |
+| --- | --- | --- | --- | --- |
+| Chinese | `zh` | Yes | Yes | `12` → `十二` |
+| English | `en` | Yes | Yes | `12` → `twelve` |
+| Japanese | `ja` | Yes | Yes | `12` → `十二` |
+| Korean | `ko` | Yes | Yes | `12` → `십이` |
+
+`lang="auto"` detects Hangul, Japanese kana, and Chinese characters. Digits alone
+use Chinese; Latin text uses English. Specify a language for ambiguous inputs,
+including Japanese text containing only kanji and numbers.
+
+Korean support is available in this source checkout. Before the next package
+release, follow the [model build instructions](#development-and-model-builds).
+
+## Quick start
+
+### Install
 
 ```bash
 pip install wetext
 ```
 
-## Usage
-
-### Python API
-
-#### Text Normalization (TN)
+### Python
 
 ```python
 from wetext import Normalizer
 
-# Chinese TN with erhua removal
+normalizer = Normalizer(lang="zh", operator="tn")
+print(normalizer.normalize("价格是12.5元"))  # 价格是十二点五元
+
+inverse_normalizer = Normalizer(lang="en", operator="itn")
+print(inverse_normalizer.normalize("twenty three dollars and fifty cents"))  # $23.50
+```
+
+### Command line
+
+```bash
+wetext --lang zh --operator tn "价格是12.5元"
+wetext --lang en --operator itn "twenty three dollars and fifty cents"
+wetext --lang ja --operator tn "12時"
+wetext --lang ko --operator tn "오후 3시 30분"
+wetext --lang ko --operator itn "오천원"
+```
+
+Each command prints the normalized text. `--lang` defaults to `auto` and
+`--operator` defaults to `tn`. Inspect all options with `wetext --help`.
+
+## Python API
+
+### Normalize text
+
+Choose the language and direction when constructing a `Normalizer`. Individual
+calls can override the same options:
+
+```python
+from wetext import Normalizer
+
 normalizer = Normalizer(lang="zh", operator="tn", remove_erhua=True)
-result = normalizer.normalize("你好 WeTextProcessing 1.0，全新版本儿，简直666")
-print(result)  # 你好 WeTextProcessing 一点零，全新版本，简直六六六
-
-# English TN
-normalizer = Normalizer(lang="en", operator="tn")
-result = normalizer.normalize("The price is $12.50, please pay now.")
-print(result)  # The price is twelve point five dollars, please pay now.
+print(normalizer.normalize("全新版本儿，简直666"))  # 全新版本，简直六百六十六
+print(normalizer.normalize("十二", operator="itn"))  # 12
 ```
 
-#### Korean
-
-```python
-normalizer = Normalizer(lang="ko", operator="tn")
-print(normalizer.normalize("2024년"))  # 이천이십사년 (followed by a space)
-normalizer = Normalizer(lang="ko", operator="itn")
-print(normalizer.normalize("십이"))  # 12
-```
-
-Korean supports TN, ITN, n-best candidates and exact mappings. Automatic
-language detection recognizes Hangul; use `lang="ko"` for inputs consisting
-only of digits or Latin text. Korean TN preserves meaningful trailing spaces
-from the upstream rules. `enable_0_to_9` applies only to Chinese and Japanese.
-Korean streaming buffers context until `flush()` for exact results.
-
-#### Inverse Text Normalization (ITN)
+The function API is also available as `wetext.normalize(text, lang="zh", operator="tn")`.
+Input is trimmed before normalization. Korean TN retains meaningful trailing
+spaces emitted by upstream rules:
 
 ```python
 from wetext import Normalizer
 
-# Chinese ITN
-normalizer = Normalizer(lang="zh", operator="itn", enable_0_to_9=False)
-result = normalizer.normalize("你好 WeTextProcessing 一点零，全新版本儿，简直六六六，九和六")
-print(result)  # 你好 WeTextProcessing 1.0，全新版本儿，简直666，九和六
-
-# English ITN
-normalizer = Normalizer(lang="en", operator="itn")
-result = normalizer.normalize("twenty three dollars and fifty cents")
-print(result)  # $23.50
+normalizer = Normalizer(lang="ko", operator="tn")
+print(repr(normalizer.normalize("2024년")))  # '이천이십사년 '
+print(normalizer.normalize("십이", operator="itn"))  # 12
 ```
 
-#### Streaming TN and ITN
+### Processing options
 
-`StreamNormalizer` keeps unfinished normalization context internally. Pass only the new
-text on each call; `feed()` returns the complete current output. Use one
-instance per utterance and call `flush()` when the utterance ends.
+All Boolean options default to `False`. The CLI uses the corresponding
+hyphenated flag, for example `remove_erhua=True` becomes `--remove-erhua`.
+
+| Python option | Behavior |
+| --- | --- |
+| `fix_contractions` | Expand English contractions, for example `don't` → `do not` |
+| `traditional_to_simple` | Convert traditional Chinese characters to simplified Chinese |
+| `full_to_half` | Convert full-width characters to half-width |
+| `remove_interjections` | Apply the Chinese interjection-removal rules |
+| `remove_puncts` | Remove punctuation |
+| `tag_oov` | Apply the Chinese vocabulary's out-of-vocabulary tagging rules |
+| `enable_0_to_9` | Enable single-digit conversion for Chinese and Japanese ITN |
+| `remove_erhua` | Remove erhua suffixes for Chinese TN |
+
+```bash
+wetext --traditional-to-simple "你好，這是測試。"
+wetext --remove-puncts "你好，這是測試。"
+wetext --lang zh --remove-erhua "全新版本儿"
+```
+
+### N-best candidates and costs
+
+Request up to `nbest` distinct outputs, ordered by WFST cost:
+
+```python
+from wetext import Normalizer
+
+normalizer = Normalizer(lang="en", operator="tn")
+print(normalizer.normalize("4x6", nbest=3))
+# ['four by six', 'four times six', 'four x six']
+
+candidates = normalizer.normalize_candidates("4x6", nbest=3)
+print(candidates[0].text, candidates[0].cost)
+```
+
+Costs are tropical WFST weights: lower is better; they are not probabilities.
+`normalize()` returns a string for `nbest=1`, or a list for `nbest>1`.
+`normalize_candidates()` always returns a list with text, costs, and path ranks.
+
+### Exact input/output mappings
+
+```python
+from wetext import Normalizer
+
+normalizer = Normalizer(lang="zh", operator="itn")
+result = normalizer.normalize_with_mapping("价格是十三点五元")
+print(result.output_text)  # 价格是¥13.5
+for mapping in result.mappings:
+    print(mapping.token_type, mapping.input_text, "=>", mapping.output_text)
+# money 十三点五元 => ¥13.5
+```
+
+Mappings trace the selected WFST path. Offsets are half-open Unicode character
+positions in the original input and normalized output. Use `include_identity=True`
+to include unchanged tokens, or `result.as_dict()` for a serializable representation.
+
+The mapping API returns a single `NormalizationResult` for `nbest=1` and a list
+for `nbest>1`. It cannot be combined with `fix_contractions=True`, because
+contraction expansion is not represented by the WFST path.
+
+## Streaming
+
+Pass only the new text to each `feed()` call. The return value is the complete
+current output, which may change while a trailing expression is unfinished.
+Use one instance per utterance and call `flush()` when it ends:
 
 ```python
 from wetext import StreamNormalizer
@@ -96,112 +180,47 @@ print(stream.feed(".5元"))  # 价格是十二点五元
 print(stream.flush())  # 价格是十二点五元
 ```
 
-Streaming requires an explicit language and supports TN and ITN. Model
-bundles built before streaming prefix graphs were introduced remain compatible;
-they retain more internal context until `flush()`. For an unusually long
-unfinished expression, only its tail is normalized for the current display;
-`flush()` always returns the exact normalization of all remaining input.
+Streaming requires an explicit language. Its default direction is `itn`;
+`Normalizer` defaults to `tn`. Call `reset()` before reusing a flushed stream.
 
-#### N-best and exact mappings
+Korean retains its input context until `flush()` to preserve exact normalization.
+Older model bundles without streaming prefix graphs also retain more context.
+For unusually long unfinished expressions, only the tail is normalized for the
+current display; `flush()` normalizes all remaining input exactly.
 
-```python
-# Distinct candidates in official WFST weight order
-normalizer = Normalizer(lang="en", operator="tn")
-print(normalizer.normalize("4x6", nbest=3))
-# ["four by six", "four times six", "four x six"]
+## Development and model builds
 
-# Include tropical WFST costs (lower is better; costs are not probabilities)
-candidates = normalizer.normalize_candidates("4x6", nbest=3)
-print(candidates[0].text, candidates[0].cost)
+The runtime and grammar compiler have separate dependencies:
 
-# Exact token spans traced through the selected WFST path
-normalizer = Normalizer(lang="zh", operator="itn")
-result = normalizer.normalize_with_mapping("价格是十三点五元")
-print(result.output_text)  # 价格是¥13.5
-print(result.mappings[0].as_dict())
-```
+| Task | Requirements |
+| --- | --- |
+| Run a published wheel | `wetext` and its runtime dependencies; bundled FST models |
+| Build models | WeTextProcessing source and a working Pynini/OpenFst environment |
+| Run source tests | Generated FST models and `pytest` |
 
-`normalize_with_mapping()` cannot be combined with `fix_contractions=True`,
-because contraction expansion is not represented by the WFST path.
-
-### Command Line Interface
+To build all models from the upstream revision used by this release workflow:
 
 ```bash
-# Basic usage
-wetext "你好 WeTextProcessing 1.0，全新版本儿，简直666"
-
-# With options
-wetext --lang zh --operator tn --remove-erhua "你好 WeTextProcessing 1.0，全新版本儿，简直666"
-
-# Convert traditional to simplified Chinese
-wetext --traditional-to-simple "你好，這是測試。"
-
-# Remove punctuations
-wetext --remove-puncts "你好，這是測試。"
+git clone https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
+git -C /tmp/WeTextProcessing checkout 31779ac
+pip install -e . /tmp/WeTextProcessing pytest build
+PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
+python -m pytest tests -q
+python -m build
 ```
 
-## API Reference
+Pynini must be available before building. If no compatible wheel is available,
+follow the [Pynini installation instructions](https://www.openfst.org/twiki/bin/view/GRM/Pynini).
 
-### Normalizer Class
+Generated models live in `wetext/fsts/` and are included in distribution packages.
+Rebuild a single language with `python build_fsts.py --lang ko` (with the same
+upstream `PYTHONPATH`). Korean models require upstream commit `31779ac` or later,
+which includes [WeTextProcessing PR #381](https://github.com/wenet-e2e/WeTextProcessing/pull/381).
 
-```python
-Normalizer(
-    lang: Literal["auto", "en", "zh", "ja", "ko"] = "auto",
-    operator: Literal["tn", "itn"] = "tn",
-    traditional_to_simple: bool = False,
-    full_to_half: bool = False,
-    remove_interjections: bool = False,
-    remove_puncts: bool = False,
-    tag_oov: bool = False,
-    enable_0_to_9: bool = False,
-    remove_erhua: bool = False,
-)
-```
-
-#### Parameters
-
-- `lang`: The language of the text. Can be "auto", "en", "zh", "ja" or "ko". Default is "auto".
-- `operator`: The operator to use. Can be "tn" (text normalization) or "itn" (inverse text normalization). Default is "tn".
-- `traditional_to_simple`: Whether to convert traditional Chinese to simplified Chinese. Default is False.
-- `full_to_half`: Whether to convert full-width characters to half-width characters. Default is False.
-- `remove_interjections`: Whether to remove interjections. Default is False.
-- `remove_puncts`: Whether to remove punctuation. Default is False.
-- `tag_oov`: Whether to tag out-of-vocabulary words. Default is False.
-- `enable_0_to_9`: Whether to enable 0-to-9 conversion for ITN. Default is False.
-- `remove_erhua`: Whether to remove erhua for TN. Default is False.
-
-#### Methods
-
-- `normalize(text: str, lang: Optional[Literal["auto", "en", "zh", "ja", "ko"]] = None) -> str`: Normalize the text.
-
-## CLI Options
-
-- `--lang, -l`: Set the language. Choices are "auto", "en", "zh", "ja", "ko". Default is "auto".
-- `--operator, -o`: Set the operator. Choices are "tn", "itn". Default is "tn".
-- `--traditional-to-simple`: Convert traditional Chinese to simplified Chinese.
-- `--full-to-half`: Convert full-width characters to half-width characters.
-- `--remove-interjections`: Remove interjections.
-- `--remove-puncts`: Remove punctuation.
-- `--tag-oov`: Tag out-of-vocabulary words.
-- `--enable-0-to-9`: Enable 0-to-9 conversion.
-- `--remove-erhua`: Remove erhua.
-
-## Building models from source
-
-Runtime wheels include FST models and require no Pynini. Source checkouts need
-models generated with Pynini and WeTextProcessing source at commit `31779ac`
-or later (Korean support was merged in PR #381):
-
-```bash
-PYTHONPATH=/path/to/WeTextProcessing python build_fsts.py
-# Rebuild just Korean models:
-PYTHONPATH=/path/to/WeTextProcessing python build_fsts.py --lang ko
-python -m pytest tests
-```
-
-Model handles are cached and loaded on first use, so applications load only the
-languages and options they use.
+The release workflow accepts an `upstream_ref` to select the grammar revision and
+runs regression tests before packaging. Models are loaded on first use and
+cached in process; the runtime does not compile rules or write a model cache.
 
 ## License
 
-[Apache License 2.0](LICENSE)
+[Apache License 2.0](LICENSE).
