@@ -16,6 +16,7 @@ import heapq
 import re
 from dataclasses import dataclass, replace
 from functools import lru_cache
+from pathlib import Path
 from typing import Literal, Optional
 
 import contractions
@@ -23,7 +24,7 @@ import kaldifst
 
 from wetext.alignment import NormalizationCandidate, NormalizationMapping, NormalizationResult
 from wetext.config import NormalizerConfig
-from wetext.constants import FSTS, FST_PATHS
+from wetext.constants import FSTS, FST_PATHS, processor_key
 from wetext.fst_utils import (
     UniqueOutputPathStream,
     compose_input,
@@ -53,6 +54,11 @@ def _read_fst(path):
     return kaldifst.StdVectorFst.read(path)
 
 
+def _processor_path(key):
+    path = FST_PATHS["processors"][key]
+    return path if Path(path).is_file() else None
+
+
 def _graphs(config, lang):
     return _cached_graphs(lang, tuple(vars(config).items()))
 
@@ -67,21 +73,33 @@ def _cached_graphs(lang, options):
     if config.remove_erhua and lang == "zh" and config.operator == "tn":
         verbalizer_name = "verbalizer_remove_erhua"
 
+    if lang == "de" and config.operator == "tn" and not config.deterministic:
+        tagger_name += "_nondeterministic"
+        verbalizer_name += "_nondeterministic"
     tagger = _read_fst(FST_PATHS[lang][config.operator][tagger_name])
     verbalizer = _read_fst(FST_PATHS[lang][config.operator][verbalizer_name])
-    postprocessors = (
-        (config.traditional_to_simple, ("preprocess", "traditional_to_simple")),
-        (config.full_to_half, ("postprocess", "full_to_half")),
-        (config.remove_interjections, ("postprocess", "remove_interjections")),
-        (config.remove_puncts, ("postprocess", "remove_puncts")),
-        (config.tag_oov, ("postprocess", "tag_oov")),
-    )
-    if any(enabled for enabled, _ in postprocessors):
+    key = processor_key(vars(config))
+    if "1" in key:
         verbalizer = verbalizer.copy()
-    for enabled, (group, name) in postprocessors:
-        if enabled:
+        fused = _processor_path(key)
+        paths = (
+            [fused]
+            if fused
+            else [
+                FST_PATHS[group][name]
+                for group, name in (
+                    ("preprocess", "traditional_to_simple"),
+                    ("postprocess", "full_to_half"),
+                    ("postprocess", "remove_interjections"),
+                    ("postprocess", "remove_puncts"),
+                    ("postprocess", "tag_oov"),
+                )
+                if getattr(config, name)
+            ]
+        )
+        for path in paths:
             kaldifst.arcsort(verbalizer, "olabel")
-            verbalizer = kaldifst.compose(verbalizer, _read_fst(FST_PATHS[group][name]))
+            verbalizer = kaldifst.compose(verbalizer, _read_fst(path))
     return tagger, verbalizer
 
 
@@ -179,7 +197,7 @@ def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
     return candidates
 
 
-def get_lang(text: str) -> Literal["en", "zh", "ja", "ko"]:
+def get_lang(text: str) -> Literal["en", "zh", "ja", "ko", "de"]:
     """
     Get the language of the text.
 
@@ -234,14 +252,27 @@ def postprocess(
     Returns:
         The postprocessed text.
     """
-    if full_to_half:
-        text = FSTS["postprocess"]["full_to_half"](text)
-    if remove_interjections:
-        text = FSTS["postprocess"]["remove_interjections"](text)
-    if remove_puncts:
-        text = FSTS["postprocess"]["remove_puncts"](text)
-    if tag_oov:
-        text = FSTS["postprocess"]["tag_oov"](text)
+    key = processor_key(
+        dict(
+            full_to_half=full_to_half,
+            remove_interjections=remove_interjections,
+            remove_puncts=remove_puncts,
+            tag_oov=tag_oov,
+        )
+    )
+    if "1" in key:
+        if _processor_path(key):
+            text = FSTS["processors"][key](text)
+        else:
+            # Bundles predating fused graphs retain the sequential behavior.
+            for enabled, name in (
+                (full_to_half, "full_to_half"),
+                (remove_interjections, "remove_interjections"),
+                (remove_puncts, "remove_puncts"),
+                (tag_oov, "tag_oov"),
+            ):
+                if enabled:
+                    text = FSTS["postprocess"][name](text)
     return text.strip() if strip else text
 
 
@@ -266,7 +297,7 @@ def should_normalize(text: str, lang: str, operator: Literal["tn", "itn"], remov
     return len(text) > 0
 
 
-def reorder(text: str, lang: Literal["en", "zh", "ja", "ko"], operator: Literal["tn", "itn"]) -> str:
+def reorder(text: str, lang: Literal["en", "zh", "ja", "ko", "de"], operator: Literal["tn", "itn"]) -> str:
     """
     Reorder the text.
 
@@ -280,7 +311,11 @@ def reorder(text: str, lang: Literal["en", "zh", "ja", "ko"], operator: Literal[
 
 
 def tag(
-    text: str, lang: Literal["en", "zh", "ja", "ko"], operator: Literal["tn", "itn"], enable_0_to_9: bool = False
+    text: str,
+    lang: Literal["en", "zh", "ja", "ko", "de"],
+    operator: Literal["tn", "itn"],
+    enable_0_to_9: bool = False,
+    deterministic: bool = True,
 ) -> str:
     """
     Tag the text.
@@ -293,18 +328,21 @@ def tag(
     Returns:
         The tagged text.
     """
-    tagger = FSTS[lang][operator]["tagger"]
+    name = "tagger"
     if enable_0_to_9 and lang in ("zh", "ja") and operator == "itn":
-        tagger = FSTS[lang]["itn"]["tagger_enable_0_to_9"]
-    return tagger(text).strip()
+        name = "tagger_enable_0_to_9"
+    if lang == "de" and operator == "tn" and not deterministic:
+        name = "tagger_nondeterministic"
+    return FSTS[lang][operator][name](text).strip()
 
 
 def verbalize(
     text: str,
-    lang: Literal["en", "zh", "ja", "ko"],
+    lang: Literal["en", "zh", "ja", "ko", "de"],
     operator: Literal["tn", "itn"],
     remove_erhua: bool = False,
     enable_0_to_9: bool = False,
+    deterministic: bool = True,
 ) -> str:
     """
     Verbalize the text.
@@ -317,12 +355,14 @@ def verbalize(
     Returns:
         The verbalized text.
     """
-    verbalizer = FSTS[lang][operator]["verbalizer"]
+    name = "verbalizer"
     if remove_erhua and lang == "zh" and operator == "tn":
-        verbalizer = FSTS["zh"]["tn"]["verbalizer_remove_erhua"]
+        name = "verbalizer_remove_erhua"
     if enable_0_to_9 and lang in ("zh", "ja") and operator == "itn":
-        verbalizer = FSTS[lang][operator]["verbalizer_enable_0_to_9"]
-    output = verbalizer(text)
+        name = "verbalizer_enable_0_to_9"
+    if lang == "de" and operator == "tn" and not deterministic:
+        name = "verbalizer_nondeterministic"
+    output = FSTS[lang][operator][name](text)
     return output if lang == "ko" else output.strip()
 
 
@@ -348,9 +388,11 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
     if nbest == 1:
         output = preprocess(prepared, config.traditional_to_simple)
         if should_normalize(output, lang, config.operator, config.remove_erhua):
-            output = tag(output, lang, config.operator, config.enable_0_to_9)
+            output = tag(output, lang, config.operator, config.enable_0_to_9, config.deterministic)
             output = reorder(output, lang, config.operator)
-            output = verbalize(output, lang, config.operator, config.remove_erhua, config.enable_0_to_9)
+            output = verbalize(
+                output, lang, config.operator, config.remove_erhua, config.enable_0_to_9, config.deterministic
+            )
         return postprocess(
             output,
             config.full_to_half,

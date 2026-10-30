@@ -20,16 +20,19 @@ drifting whenever upstream adds or restructures a rule.
 """
 
 import argparse
+from itertools import product
 from pathlib import Path
 
 import pynini
 
 from itn.chinese.inverse_normalizer import InverseNormalizer as ZhInverseNormalizer
 from itn.english.inverse_normalizer import InverseNormalizer as EnInverseNormalizer
+from itn.german.inverse_normalizer import InverseNormalizer as DeInverseNormalizer
 from itn.japanese.inverse_normalizer import InverseNormalizer as JaInverseNormalizer
 from tn.chinese.normalizer import Normalizer as ZhNormalizer
 from tn.chinese.rules.postprocessor import PostProcessor
 from tn.english.normalizer import Normalizer as EnNormalizer
+from tn.german.normalizer import Normalizer as DeNormalizer
 from tn.japanese.normalizer import Normalizer as JaNormalizer
 
 from itn.korean.inverse_normalizer import InverseNormalizer as KoInverseNormalizer
@@ -124,7 +127,15 @@ def build_processors():
     for filename, enabled in configs.items():
         options = disabled.copy()
         options.update(enabled)
-        write_graph(PostProcessor(**options).processor.star, filename)
+        write_graph(PostProcessor(**options).processor, filename)
+    # Export fused single-character rewrites, rather than multiplying several
+    # whole-string FSTs at runtime. Option order matches upstream PostProcessor.
+    names = ("traditional_to_simple", "remove_interjections", "remove_puncts", "full_to_half", "tag_oov")
+    for flags in product((False, True), repeat=len(names)):
+        if not any(flags):
+            continue
+        key = "".join("1" if flag else "0" for flag in flags)
+        write_graph(PostProcessor(**dict(zip(names, flags))).processor, f"processors/{key}.fst")
 
 
 def build_zh_tn():
@@ -216,9 +227,20 @@ def build_ko():
         write_graph(normalizer.verbalizer, "ko/{}/verbalizer.fst".format(operator))
 
 
+def build_de():
+    for deterministic in (True, False):
+        normalizer = DeNormalizer(cache_dir=False, deterministic=deterministic)
+        suffix = "" if deterministic else "_nondeterministic"
+        write_graph(normalizer.tagger, f"de/tn/tagger{suffix}.fst")
+        write_graph(normalizer.verbalizer, f"de/tn/verbalizer{suffix}.fst")
+    inverse = DeInverseNormalizer(cache_dir=False)
+    write_graph(inverse.tagger, "de/itn/tagger.fst")
+    write_graph(inverse.verbalizer, "de/itn/verbalizer.fst")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--lang", choices=("all", "zh", "en", "ja", "ko"), default="all")
+    parser.add_argument("--lang", choices=("all", "zh", "en", "ja", "ko", "de", "processors"), default="all")
     args = parser.parse_args()
     if args.lang != "all":
         for build in {
@@ -226,6 +248,8 @@ def main():
             "en": (build_en,),
             "ja": (build_ja_tn, build_ja_itn),
             "ko": (build_ko,),
+            "de": (build_de,),
+            "processors": (build_processors,),
         }[args.lang]:
             build()
         return
@@ -236,6 +260,7 @@ def main():
     build_ja_tn()
     build_ja_itn()
     build_ko()
+    build_de()
 
 
 if __name__ == "__main__":
