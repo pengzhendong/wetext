@@ -113,6 +113,7 @@ FST_PATHS = {
         "itn": {
             "tagger": fst_path("zh/itn/tagger.fst"),
             "tagger_enable_0_to_9": fst_path("zh/itn/tagger_enable_0_to_9.fst"),
+            "verbalizer_enable_0_to_9": fst_path("zh/itn/verbalizer_enable_0_to_9.fst"),
             "verbalizer": fst_path("zh/itn/verbalizer.fst"),
         },
     },
@@ -124,6 +125,7 @@ FST_PATHS = {
         "itn": {
             "tagger": fst_path("ja/itn/tagger.fst"),
             "tagger_enable_0_to_9": fst_path("ja/itn/tagger_enable_0_to_9.fst"),
+            "verbalizer_enable_0_to_9": fst_path("ja/itn/verbalizer_enable_0_to_9.fst"),
             "verbalizer": fst_path("ja/itn/verbalizer.fst"),
         },
     },

@@ -1,0 +1,25 @@
+name: regression
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install runtime and grammar compiler
+        run: |
+          git clone https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
+          git -C /tmp/WeTextProcessing checkout 31779ac
+          python -m pip install -e . /tmp/WeTextProcessing pytest
+      - name: Build all model variants
+        run: PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
+      - name: Test all languages
+        run: python -m pytest tests -q
