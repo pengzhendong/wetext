@@ -5,12 +5,12 @@
 
 Python runtime for WeTextProcessing (does not depend on Pynini).
 
-WeTextProcessing is a text processing library that provides text normalization (TN) and inverse text normalization (ITN) capabilities for Chinese, English and Japanese text. It uses Finite State Transducers (FSTs) for efficient text processing.
+WeTextProcessing is a text processing library that provides text normalization (TN) and inverse text normalization (ITN) capabilities for Chinese, English, Japanese and Korean text. It uses Finite State Transducers (FSTs) for efficient text processing.
 
 ## Features
 
-- Text Normalization (TN) for Chinese, English and Japanese
-- Inverse Text Normalization (ITN) for Chinese, English and Japanese
+- Text Normalization (TN) for Chinese, English, Japanese and Korean
+- Inverse Text Normalization (ITN) for Chinese, English, Japanese and Korean
 - Traditional to Simplified Chinese conversion
 - Full-width to Half-width character conversion
 - Interjection removal
@@ -44,6 +44,21 @@ normalizer = Normalizer(lang="en", operator="tn")
 result = normalizer.normalize("The price is $12.50, please pay now.")
 print(result)  # The price is twelve point five dollars, please pay now.
 ```
+
+#### Korean
+
+```python
+normalizer = Normalizer(lang="ko", operator="tn")
+print(normalizer.normalize("2024년"))  # 이천이십사년 (followed by a space)
+normalizer = Normalizer(lang="ko", operator="itn")
+print(normalizer.normalize("십이"))  # 12
+```
+
+Korean supports TN, ITN, n-best candidates and exact mappings. Automatic
+language detection recognizes Hangul; use `lang="ko"` for inputs consisting
+only of digits or Latin text. Korean TN preserves meaningful trailing spaces
+from the upstream rules. `enable_0_to_9` applies only to Chinese and Japanese.
+Korean streaming buffers context until `flush()` for exact results.
 
 #### Inverse Text Normalization (ITN)
 
@@ -131,7 +146,7 @@ wetext --remove-puncts "你好，這是測試。"
 
 ```python
 Normalizer(
-    lang: Literal["auto", "en", "zh", "ja"] = "auto",
+    lang: Literal["auto", "en", "zh", "ja", "ko"] = "auto",
     operator: Literal["tn", "itn"] = "tn",
     traditional_to_simple: bool = False,
     full_to_half: bool = False,
@@ -145,7 +160,7 @@ Normalizer(
 
 #### Parameters
 
-- `lang`: The language of the text. Can be "auto", "en", "zh" or "ja". Default is "auto".
+- `lang`: The language of the text. Can be "auto", "en", "zh", "ja" or "ko". Default is "auto".
 - `operator`: The operator to use. Can be "tn" (text normalization) or "itn" (inverse text normalization). Default is "tn".
 - `traditional_to_simple`: Whether to convert traditional Chinese to simplified Chinese. Default is False.
 - `full_to_half`: Whether to convert full-width characters to half-width characters. Default is False.
@@ -157,11 +172,11 @@ Normalizer(
 
 #### Methods
 
-- `normalize(text: str, lang: Optional[Literal["auto", "en", "zh", "ja"]] = None) -> str`: Normalize the text.
+- `normalize(text: str, lang: Optional[Literal["auto", "en", "zh", "ja", "ko"]] = None) -> str`: Normalize the text.
 
 ## CLI Options
 
-- `--lang, -l`: Set the language. Choices are "auto", "en", "zh", "ja". Default is "auto".
+- `--lang, -l`: Set the language. Choices are "auto", "en", "zh", "ja", "ko". Default is "auto".
 - `--operator, -o`: Set the operator. Choices are "tn", "itn". Default is "tn".
 - `--traditional-to-simple`: Convert traditional Chinese to simplified Chinese.
 - `--full-to-half`: Convert full-width characters to half-width characters.
@@ -170,6 +185,22 @@ Normalizer(
 - `--tag-oov`: Tag out-of-vocabulary words.
 - `--enable-0-to-9`: Enable 0-to-9 conversion.
 - `--remove-erhua`: Remove erhua.
+
+## Building models from source
+
+Runtime wheels include FST models and require no Pynini. Source checkouts need
+models generated with Pynini and WeTextProcessing source at commit `31779ac`
+or later (Korean support was merged in PR #381):
+
+```bash
+PYTHONPATH=/path/to/WeTextProcessing python build_fsts.py
+# Rebuild just Korean models:
+PYTHONPATH=/path/to/WeTextProcessing python build_fsts.py --lang ko
+python -m pytest tests
+```
+
+Model handles are cached and loaded on first use, so applications load only the
+languages and options they use.
 
 ## License
 

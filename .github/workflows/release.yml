@@ -6,6 +6,10 @@ on:
       version:
         description: "Build version (e.g. 0.0.1)"
         required: true
+      upstream_ref:
+        description: "WeTextProcessing commit or tag used to build models"
+        required: true
+        default: "31779ac"
       upload_fsts:
         description: "Upload generated FSTs to ModelScope"
         required: true
@@ -21,11 +25,15 @@ jobs:
         with:
           python-version: "3.11"
       - name: Build FSTs and distributions
+        env:
+          UPSTREAM_REF: ${{ inputs.upstream_ref }}
         run: |
           echo "${{ inputs.version }}" > VERSION
-          git clone --depth 1 https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
-          python -m pip install -U /tmp/WeTextProcessing build modelscope-hub setuptools twine wheel
+          git clone https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
+          git -C /tmp/WeTextProcessing checkout "$UPSTREAM_REF"
+          python -m pip install -U -e . /tmp/WeTextProcessing build modelscope-hub pytest setuptools twine wheel
           PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
+          python -m pytest tests -q
           python -m build
       - name: Upload FSTs to ModelScope
         if: ${{ inputs.upload_fsts }}

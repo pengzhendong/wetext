@@ -55,14 +55,14 @@ def _read_fst(path):
 
 def _graphs(config, lang):
     tagger_name = "tagger"
-    if config.enable_0_to_9 and lang != "en" and config.operator == "itn":
+    if config.enable_0_to_9 and lang in ("zh", "ja") and config.operator == "itn":
         tagger_name = "tagger_enable_0_to_9"
     verbalizer_name = "verbalizer"
     if config.remove_erhua and lang == "zh" and config.operator == "tn":
         verbalizer_name = "verbalizer_remove_erhua"
 
-    tagger = _read_fst(FST_PATHS[lang][config.operator][tagger_name]).copy()
-    verbalizer = _read_fst(FST_PATHS[lang][config.operator][verbalizer_name]).copy()
+    tagger = _read_fst(FST_PATHS[lang][config.operator][tagger_name])
+    verbalizer = _read_fst(FST_PATHS[lang][config.operator][verbalizer_name])
     postprocessors = (
         (config.traditional_to_simple, ("preprocess", "traditional_to_simple")),
         (config.full_to_half, ("postprocess", "full_to_half")),
@@ -70,6 +70,8 @@ def _graphs(config, lang):
         (config.remove_puncts, ("postprocess", "remove_puncts")),
         (config.tag_oov, ("postprocess", "tag_oov")),
     )
+    if any(enabled for enabled, _ in postprocessors):
+        verbalizer = verbalizer.copy()
     for enabled, (group, name) in postprocessors:
         if enabled:
             kaldifst.arcsort(verbalizer, "olabel")
@@ -83,7 +85,7 @@ def _validate_nbest(nbest):
 
 
 def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
-    tagger_stream = UniqueOutputPathStream(compose_input(text, tagger))
+    tagger_stream = UniqueOutputPathStream(compose_input(text, tagger), prefer_native=lang == "ko")
     frontier = []
     activated = 0
     candidates = []
@@ -95,7 +97,7 @@ def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
         if tagged_path is None:
             return False
         reordered = TokenParser(lang, operator).reorder(tagged_path.text)
-        verbalizer_stream = UniqueOutputPathStream(compose_input(reordered, verbalizer))
+        verbalizer_stream = UniqueOutputPathStream(compose_input(reordered, verbalizer), prefer_native=lang == "ko")
         verbalized_path = verbalizer_stream.pop()
         tagger_rank = tagged_path.rank
         activated += 1
@@ -133,6 +135,11 @@ def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
             activate_next_tag()
             continue
         _, _, _, serial, candidate, verbalizer_stream = heapq.heappop(frontier)
+        if candidate.output not in seen_outputs:
+            seen_outputs.add(candidate.output)
+            candidates.append(candidate)
+            if len(candidates) == nbest:
+                break
         next_verbalized = verbalizer_stream.pop()
         if next_verbalized is not None:
             next_candidate = _NormalizationCandidate(
@@ -155,15 +162,12 @@ def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
                     verbalizer_stream,
                 ),
             )
-        if candidate.output not in seen_outputs:
-            seen_outputs.add(candidate.output)
-            candidates.append(candidate)
     if not candidates:
         raise RuntimeError("no normalization path for the requested input")
     return candidates
 
 
-def get_lang(text: str) -> Literal["en", "zh", "ja"]:
+def get_lang(text: str) -> Literal["en", "zh", "ja", "ko"]:
     """
     Get the language of the text.
 
@@ -172,6 +176,10 @@ def get_lang(text: str) -> Literal["en", "zh", "ja"]:
     Returns:
         The language of the text.
     """
+    if any("\uac00" <= ch <= "\ud7af" or "\u1100" <= ch <= "\u11ff" or "\u3130" <= ch <= "\u318f" for ch in text):
+        return "ko"
+    if any("\u3040" <= ch <= "\u30ff" for ch in text):
+        return "ja"
     contains_chinese = False
     for ch in text:
         if "\u4e00" <= ch <= "\u9fff":
@@ -200,6 +208,7 @@ def postprocess(
     remove_interjections: bool = False,
     remove_puncts: bool = False,
     tag_oov: bool = False,
+    strip: bool = True,
 ) -> str:
     """
     Postprocess the text after normalization.
@@ -221,7 +230,7 @@ def postprocess(
         text = FSTS["postprocess"]["remove_puncts"](text)
     if tag_oov:
         text = FSTS["postprocess"]["tag_oov"](text)
-    return text.strip()
+    return text.strip() if strip else text
 
 
 def should_normalize(text: str, lang: str, operator: Literal["tn", "itn"], remove_erhua: bool = False) -> bool:
@@ -236,7 +245,7 @@ def should_normalize(text: str, lang: str, operator: Literal["tn", "itn"], remov
     Returns:
         True if the text should be normalized, False otherwise.
     """
-    if operator == "tn" and lang != "en":
+    if operator == "tn" and lang in ("zh", "ja"):
         if bool(re.search(r"\d", text)):
             return True
         if remove_erhua and re.search(r"儿|兒", text):
@@ -245,7 +254,7 @@ def should_normalize(text: str, lang: str, operator: Literal["tn", "itn"], remov
     return len(text) > 0
 
 
-def reorder(text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", "itn"]) -> str:
+def reorder(text: str, lang: Literal["en", "zh", "ja", "ko"], operator: Literal["tn", "itn"]) -> str:
     """
     Reorder the text.
 
@@ -258,7 +267,9 @@ def reorder(text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", 
     return TokenParser(lang, operator).reorder(text)
 
 
-def tag(text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", "itn"], enable_0_to_9: bool = False) -> str:
+def tag(
+    text: str, lang: Literal["en", "zh", "ja", "ko"], operator: Literal["tn", "itn"], enable_0_to_9: bool = False
+) -> str:
     """
     Tag the text.
 
@@ -271,13 +282,13 @@ def tag(text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", "itn
         The tagged text.
     """
     tagger = FSTS[lang][operator]["tagger"]
-    if enable_0_to_9 and lang != "en" and operator == "itn":
+    if enable_0_to_9 and lang in ("zh", "ja") and operator == "itn":
         tagger = FSTS[lang]["itn"]["tagger_enable_0_to_9"]
     return tagger(text).strip()
 
 
 def verbalize(
-    text: str, lang: Literal["en", "zh", "ja"], operator: Literal["tn", "itn"], remove_erhua: bool = False
+    text: str, lang: Literal["en", "zh", "ja", "ko"], operator: Literal["tn", "itn"], remove_erhua: bool = False
 ) -> str:
     """
     Verbalize the text.
@@ -293,7 +304,8 @@ def verbalize(
     verbalizer = FSTS[lang][operator]["verbalizer"]
     if remove_erhua and lang == "zh" and operator == "tn":
         verbalizer = FSTS["zh"]["tn"]["verbalizer_remove_erhua"]
-    return verbalizer(text).strip()
+    output = verbalizer(text)
+    return output if lang == "ko" else output.strip()
 
 
 def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int = 1, **kwargs):
@@ -327,6 +339,7 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
             config.remove_interjections,
             config.remove_puncts,
             config.tag_oov,
+            strip=lang != "ko",
         )
     if should_normalize(prepared, lang, config.operator, config.remove_erhua):
         tagger, verbalizer = _graphs(config, lang)
@@ -342,6 +355,7 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
             config.remove_interjections,
             config.remove_puncts,
             config.tag_oov,
+            strip=lang != "ko",
         )
         outputs = [output]
     return outputs[0] if nbest == 1 else outputs
@@ -370,6 +384,7 @@ def normalize_candidates(text: str, config: Optional[NormalizerConfig] = None, n
             config.remove_interjections,
             config.remove_puncts,
             config.tag_oov,
+            strip=lang != "ko",
         )
         return [NormalizationCandidate(output, 0.0, 0.0, 0.0, 0, 0)]
 

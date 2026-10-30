@@ -19,6 +19,7 @@ composition; keeping those details there prevents this runtime build from
 drifting whenever upstream adds or restructures a rule.
 """
 
+import argparse
 from pathlib import Path
 
 from itn.chinese.inverse_normalizer import InverseNormalizer as ZhInverseNormalizer
@@ -28,6 +29,9 @@ from tn.chinese.normalizer import Normalizer as ZhNormalizer
 from tn.chinese.rules.postprocessor import PostProcessor
 from tn.english.normalizer import Normalizer as EnNormalizer
 from tn.japanese.normalizer import Normalizer as JaNormalizer
+
+from itn.korean.inverse_normalizer import InverseNormalizer as KoInverseNormalizer
+from tn.korean.normalizer import Normalizer as KoNormalizer
 
 FST_DIR = Path("wetext/fsts")
 
@@ -181,13 +185,35 @@ def build_ja_itn():
     write_graph(enable_0_to_9.stream_prefix_tagger, "ja/itn/prefix_enable_0_to_9.fst")
 
 
+def build_ko():
+    # Without a proven lexical boundary Korean streaming conservatively buffers
+    # until flush(), using the existing optional-prefix fallback.
+    for operator, cls in (("tn", KoNormalizer), ("itn", KoInverseNormalizer)):
+        normalizer = cls(cache_dir=False)
+        write_graph(normalizer.tagger, "ko/{}/tagger.fst".format(operator))
+        write_graph(normalizer.verbalizer, "ko/{}/verbalizer.fst".format(operator))
+
+
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--lang", choices=("all", "zh", "en", "ja", "ko"), default="all")
+    args = parser.parse_args()
+    if args.lang != "all":
+        for build in {
+            "zh": (build_zh_tn, build_zh_itn),
+            "en": (build_en,),
+            "ja": (build_ja_tn, build_ja_itn),
+            "ko": (build_ko,),
+        }[args.lang]:
+            build()
+        return
     build_processors()
     build_zh_tn()
     build_zh_itn()
     build_en()
     build_ja_tn()
     build_ja_itn()
+    build_ko()
 
 
 if __name__ == "__main__":

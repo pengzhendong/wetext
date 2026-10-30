@@ -20,7 +20,7 @@ from typing import Literal
 class NormalizerConfig:
     """Configuration for text normalization."""
 
-    lang: Literal["auto", "en", "zh"] = "auto"
+    lang: Literal["auto", "en", "zh", "ja", "ko"] = "auto"
     """Language of the input text ('auto' for automatic detection)."""
 
     operator: Literal["tn", "itn"] = "tn"
