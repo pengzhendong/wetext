@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections.abc import Mapping
 from functools import lru_cache
 from importlib.resources import files
 from pathlib import Path
@@ -20,6 +21,7 @@ import kaldifst
 from kaldifst import TextNormalizer as normalizer
 
 
+@lru_cache(maxsize=None)
 def load_fst(fst_path) -> normalizer:
     """
     Load a FST from the fsts directory.
@@ -29,12 +31,12 @@ def load_fst(fst_path) -> normalizer:
     Returns:
         The loaded FST.
     """
-    fst_path = files("wetext.fsts").joinpath(fst_path)
+    fst_path = files("wetext").joinpath("fsts", fst_path)
     return normalizer(str(fst_path))
 
 
 def fst_path(fst_path):
-    return str(files("wetext.fsts").joinpath(fst_path))
+    return str(files("wetext").joinpath("fsts", fst_path))
 
 
 EOS = "<EOS>"
@@ -58,63 +60,49 @@ ITN_ORDERS = {
     "telephone": ["country_code", "number_part"],
     "electronic": ["username", "domain", "protocol"],
 }
-EN_ITN_ORDERS = ITN_ORDERS
-FSTS = {
-    "preprocess": {
-        "traditional_to_simple": load_fst("traditional_to_simple.fst"),
-    },
-    "en": {
-        "tn": {
-            "tagger": load_fst("en/tn/tagger.fst"),
-            "verbalizer": load_fst("en/tn/verbalizer.fst"),
-        },
-        "itn": {
-            "tagger": load_fst("en/itn/tagger.fst"),
-            "verbalizer": load_fst("en/itn/verbalizer.fst"),
-        },
-    },
-    "zh": {
-        "tn": {
-            "tagger": load_fst("zh/tn/tagger.fst"),
-            "verbalizer": load_fst("zh/tn/verbalizer.fst"),
-            "verbalizer_remove_erhua": load_fst("zh/tn/verbalizer_remove_erhua.fst"),
-        },
-        "itn": {
-            "tagger": load_fst("zh/itn/tagger.fst"),
-            "tagger_enable_0_to_9": load_fst("zh/itn/tagger_enable_0_to_9.fst"),
-            "verbalizer": load_fst("zh/itn/verbalizer.fst"),
-        },
-    },
-    "ja": {
-        "tn": {
-            "tagger": load_fst("ja/tn/tagger.fst"),
-            "verbalizer": load_fst("ja/tn/verbalizer.fst"),
-        },
-        "itn": {
-            "tagger": load_fst("ja/itn/tagger.fst"),
-            "tagger_enable_0_to_9": load_fst("ja/itn/tagger_enable_0_to_9.fst"),
-            "verbalizer": load_fst("ja/itn/verbalizer.fst"),
-        },
-    },
-    "postprocess": {
-        "full_to_half": load_fst("full_to_half.fst"),
-        "remove_interjections": load_fst("remove_interjections.fst"),
-        "remove_puncts": load_fst("remove_puncts.fst"),
-        "tag_oov": load_fst("tag_oov.fst"),
-    },
+KO_TN_ORDERS = {
+    "date": ["era", "year", "month", "day", "weekday", "range_start"],
+    "fraction": ["negative", "integer_part", "denominator", "numerator", "particle"],
+    "measure": [
+        "negative",
+        "integer_part",
+        "denominator",
+        "numerator",
+        "particle",
+        "integer",
+        "fractional_part",
+        "units",
+    ],
+    "money": ["integer_part", "currency_maj", "minor_part"],
+    "time": ["suffix", "hours", "minutes", "seconds"],
 }
-
+KO_ITN_ORDERS = {
+    "cardinal": ["negative", "integer"],
+    "date": ["year", "month", "day"],
+    "decimal": ["negative", "integer_part", "fractional_part", "quantity"],
+    "fraction": ["negative", "integer_part", "numerator", "denominator", "suffix"],
+    "measure": ["negative", "numerator", "denominator", "value", "units"],
+    "money": ["currency", "value"],
+    "ordinal": ["integer", "counter", "suffix"],
+    "telephone": ["number_part"],
+    "time": ["prefix", "hours", "minutes", "seconds", "suffix"],
+    "whitelist": ["value"],
+    "word": ["value"],
+}
+EN_ITN_ORDERS = ITN_ORDERS
 FST_PATHS = {
-    "preprocess": {"traditional_to_simple": fst_path("traditional_to_simple.fst")},
-    "postprocess": {
-        "full_to_half": fst_path("full_to_half.fst"),
-        "remove_interjections": fst_path("remove_interjections.fst"),
-        "remove_puncts": fst_path("remove_puncts.fst"),
-        "tag_oov": fst_path("tag_oov.fst"),
+    "preprocess": {
+        "traditional_to_simple": fst_path("traditional_to_simple.fst"),
     },
     "en": {
-        "tn": {"tagger": fst_path("en/tn/tagger.fst"), "verbalizer": fst_path("en/tn/verbalizer.fst")},
-        "itn": {"tagger": fst_path("en/itn/tagger.fst"), "verbalizer": fst_path("en/itn/verbalizer.fst")},
+        "tn": {
+            "tagger": fst_path("en/tn/tagger.fst"),
+            "verbalizer": fst_path("en/tn/verbalizer.fst"),
+        },
+        "itn": {
+            "tagger": fst_path("en/itn/tagger.fst"),
+            "verbalizer": fst_path("en/itn/verbalizer.fst"),
+        },
     },
     "zh": {
         "tn": {
@@ -129,14 +117,49 @@ FST_PATHS = {
         },
     },
     "ja": {
-        "tn": {"tagger": fst_path("ja/tn/tagger.fst"), "verbalizer": fst_path("ja/tn/verbalizer.fst")},
+        "tn": {
+            "tagger": fst_path("ja/tn/tagger.fst"),
+            "verbalizer": fst_path("ja/tn/verbalizer.fst"),
+        },
         "itn": {
             "tagger": fst_path("ja/itn/tagger.fst"),
             "tagger_enable_0_to_9": fst_path("ja/itn/tagger_enable_0_to_9.fst"),
             "verbalizer": fst_path("ja/itn/verbalizer.fst"),
         },
     },
+    "ko": {
+        operator: {name: fst_path("ko/{}/{}.fst".format(operator, name)) for name in ("tagger", "verbalizer")}
+        for operator in ("tn", "itn")
+    },
+    "postprocess": {
+        "full_to_half": fst_path("full_to_half.fst"),
+        "remove_interjections": fst_path("remove_interjections.fst"),
+        "remove_puncts": fst_path("remove_puncts.fst"),
+        "tag_oov": fst_path("tag_oov.fst"),
+    },
 }
+
+
+class _LazyFsts(Mapping):
+    """Resolve model handles only on first use of each graph."""
+
+    def __init__(self, paths):
+        self.paths = paths
+        self.groups = {key: _LazyFsts(value) for key, value in paths.items() if isinstance(value, dict)}
+
+    def __getitem__(self, key):
+        if key in self.groups:
+            return self.groups[key]
+        return load_fst(self.paths[key])
+
+    def __iter__(self):
+        return iter(self.paths)
+
+    def __len__(self):
+        return len(self.paths)
+
+
+FSTS = _LazyFsts(FST_PATHS)
 
 
 @lru_cache(maxsize=None)
@@ -147,7 +170,7 @@ def get_prefix_fst(lang, operator, enable_0_to_9=False):
     the streaming API degrade safely by buffering until ``flush()``.
     """
 
-    use_digit_graph = operator == "itn" and enable_0_to_9 and lang != "en"
+    use_digit_graph = operator == "itn" and enable_0_to_9 and lang in ("zh", "ja")
     filename = "prefix_enable_0_to_9.fst" if use_digit_graph else "prefix.fst"
     path = Path(fst_path(f"{lang}/{operator}/{filename}"))
     if not path.is_file():

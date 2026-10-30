@@ -14,11 +14,16 @@
 
 import string
 
-from wetext.constants import EN_ITN_ORDERS, EN_TN_ORDERS, EOS, ITN_ORDERS, TN_ORDERS
+from wetext.constants import EN_ITN_ORDERS, EN_TN_ORDERS, EOS, ITN_ORDERS, KO_ITN_ORDERS, KO_TN_ORDERS, TN_ORDERS
 
 
 def escape_value(value):
+    """Escapes a raw field value for the tagged-token wire format."""
     return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+class TokenParseError(ValueError):
+    """Raised when a tagged token stream is malformed."""
 
 
 class Token:
@@ -30,6 +35,8 @@ class Token:
         self.members = {}
 
     def append(self, key, value):
+        if key in self.members:
+            raise TokenParseError("duplicate field {!r} in token {!r}".format(key, self.name))
         self.order.append(key)
         self.members[key] = value
 
@@ -39,7 +46,8 @@ class Token:
         if self.name in orders.keys():
             if "preserve_order" not in self.members.keys() or self.members["preserve_order"] != "true":
                 canonical_order = orders[self.name]
-                order = canonical_order + [key for key in self.order if key not in canonical_order]
+                extra_fields = [key for key in self.order if key not in canonical_order]
+                order = canonical_order + extra_fields
 
         for key in order:
             if key not in self.members.keys():
@@ -50,22 +58,17 @@ class Token:
 
 class TokenParser:
     def __init__(self, lang, operator="tn"):
-        assert lang in ("en", "zh", "ja")
-        if lang == "en":
-            if operator == "tn":
-                self.orders = EN_TN_ORDERS
-            elif operator == "itn":
-                self.orders = EN_ITN_ORDERS
-            else:
-                raise NotImplementedError()
-        else:
-            if operator == "tn":
-                self.orders = TN_ORDERS
-            elif operator == "itn":
-                self.orders = ITN_ORDERS
+        schemas = {
+            "en": {"tn": EN_TN_ORDERS, "itn": EN_ITN_ORDERS},
+            "zh": {"tn": TN_ORDERS, "itn": ITN_ORDERS},
+            "ja": {"tn": TN_ORDERS, "itn": ITN_ORDERS},
+            "ko": {"tn": KO_TN_ORDERS, "itn": KO_ITN_ORDERS},
+        }
+        self.orders = schemas[lang][operator]
 
     def load(self, input):
-        assert len(input) > 0
+        if not input:
+            raise TokenParseError("token stream must not be empty")
         self.index = 0
         self.text = input
         self.char = input[0]
@@ -92,33 +95,51 @@ class TokenParser:
         return False
 
     def parse_chars(self, exp):
-        ok = False
+        start = self.index
         for x in exp:
-            ok |= self.parse_char(x)
-        return ok
+            if not self.parse_char(x):
+                self.index = start
+                self.char = self.text[start]
+                return False
+        return True
+
+    def expect_chars(self, exp):
+        if not self.parse_chars(exp):
+            raise TokenParseError("expected {!r} at position {}, got {!r}".format(exp, self.index, self.char))
 
     def parse_key(self):
-        assert self.char != EOS
-        assert self.char not in string.whitespace
+        if self.char == EOS:
+            raise TokenParseError("expected key at end of token stream")
+        if self.char in string.whitespace:
+            raise TokenParseError("expected key at position {}".format(self.index))
 
         key = ""
         while self.char in string.ascii_letters + "_":
             key += self.char
             self.read()
+        if not key:
+            raise TokenParseError("invalid key at position {}".format(self.index))
         return key
 
     def parse_value(self):
-        assert self.char != EOS
-        escape = False
+        if self.char == EOS:
+            raise TokenParseError("expected value at end of token stream")
 
         value = ""
         while self.char != '"':
-            value += self.char
-            escape = self.char == "\\"
-            self.read()
-            if escape:
-                escape = False
+            if self.char == EOS:
+                raise TokenParseError("unterminated value at position {}".format(self.index))
+            escaped = self.char == "\\"
+            if not escaped:
                 value += self.char
+            self.read()
+            if escaped:
+                if self.char == EOS:
+                    raise TokenParseError("unterminated escape at position {}".format(self.index))
+                if self.char in ('"', "\\"):
+                    value += self.char
+                else:
+                    value += "\\" + self.char
                 self.read()
         return value
 
@@ -127,18 +148,22 @@ class TokenParser:
         while self.parse_ws():
             token_start = self.index
             name = self.parse_key()
-            self.parse_chars(" { ")
+            self.expect_chars(" { ")
 
             token = Token(name, token_start)
+            closed = False
             while self.parse_ws():
                 if self.char == "}":
                     self.parse_char("}")
+                    closed = True
                     break
                 key = self.parse_key()
-                self.parse_chars(': "')
+                self.expect_chars(': "')
                 value = self.parse_value()
-                self.parse_char('"')
+                self.expect_chars('"')
                 token.append(key, value)
+            if not closed:
+                raise TokenParseError("unterminated token {!r}".format(name))
             token.end = len(self.text) if self.char == EOS else self.index
             self.tokens.append(token)
 
@@ -147,6 +172,8 @@ class TokenParser:
         return output
 
     def reorder_with_spans(self, input):
+        """Returns reordered text and each token's span in that text."""
+
         self.parse(input)
         serialized = []
         spans = []

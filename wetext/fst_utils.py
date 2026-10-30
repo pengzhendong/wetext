@@ -60,8 +60,9 @@ def linear_path(path):
     )
 
 
-def shortest_unique_paths(lattice, n):
-    projected = project_output(lattice)
+def shortest_unique_paths(lattice, n, projected=None):
+    if projected is None:
+        projected = project_output(lattice)
     if projected.start == -1:
         return []
     # OpenFst/Pynini breaks equal-weight paths lexicographically, while
@@ -85,19 +86,31 @@ class WeightedOutput:
 
 
 class UniqueOutputPathStream:
-    def __init__(self, lattice):
+    def __init__(self, lattice, prefer_native=False):
+        self.prefer_native = prefer_native
         self.lattice = lattice
         self.items = []
         self.yielded = set()
         self.next_rank = 0
         self.limit = 0
+        self.projected = None
         self.exhausted = False
 
     def _expand(self):
         if self.exhausted:
             return
+        if self.prefer_native and self.limit == 0 and self.lattice.start != -1:
+            # Preserve the native one-best tie choice before enumerating
+            # remaining unique outputs. Korean verbalizers contain meaningful
+            # equal-cost alternatives (e.g. 만천 -> 11000 versus 1000).
+            _, output, weight = linear_path(kaldifst.shortest_path(self.lattice, 1))
+            self.items = [WeightedOutput(output, weight, -1)]
+            self.limit = 1
+            return
         limit = 1 if self.limit == 0 else self.limit * 2
-        paths = shortest_unique_paths(self.lattice, limit)
+        if self.projected is None:
+            self.projected = project_output(self.lattice)
+        paths = shortest_unique_paths(self.lattice, limit, projected=self.projected)
         self.items = [WeightedOutput(text, weight, -1) for text, weight in paths if text not in self.yielded]
         self.limit = limit
         if len(paths) < limit:
