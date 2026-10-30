@@ -198,5 +198,46 @@
       "test_cases_time.txt"
     ],
     "count": 209
+  },
+  {
+    "id": "de-tn",
+    "lang": "de",
+    "operator": "tn",
+    "options": {},
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 265
+  },
+  {
+    "id": "de-itn",
+    "lang": "de",
+    "operator": "itn",
+    "options": {},
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 288
   }
 ]

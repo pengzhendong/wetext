@@ -130,7 +130,7 @@ class StreamNormalizer:
         return raw_head + self._normalize_piece(tail)
 
     def _safe_position(self, text):
-        if self.config.lang == "ko":
+        if self.config.lang in ("ko", "de"):
             return 0
 
         if text and text[-1] in _HARD_COMMIT_BOUNDARIES:

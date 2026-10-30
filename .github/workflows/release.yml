@@ -9,7 +9,7 @@ on:
       upstream_ref:
         description: "WeTextProcessing commit or tag used to build models"
         required: true
-        default: "31779ac"
+        default: "943259052c15bd6999f5c46d931241d5e9b4df86"
       upload_fsts:
         description: "Upload generated FSTs to ModelScope"
         required: true

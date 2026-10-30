@@ -14,7 +14,17 @@
 
 import string
 
-from wetext.constants import EN_ITN_ORDERS, EN_TN_ORDERS, EOS, ITN_ORDERS, KO_ITN_ORDERS, KO_TN_ORDERS, TN_ORDERS
+from wetext.constants import (
+    DE_ITN_ORDERS,
+    DE_TN_ORDERS,
+    EN_ITN_ORDERS,
+    EN_TN_ORDERS,
+    EOS,
+    ITN_ORDERS,
+    KO_ITN_ORDERS,
+    KO_TN_ORDERS,
+    TN_ORDERS,
+)
 
 
 def escape_value(value):
@@ -62,6 +72,7 @@ class TokenParser:
             "en": {"tn": EN_TN_ORDERS, "itn": EN_ITN_ORDERS},
             "zh": {"tn": TN_ORDERS, "itn": ITN_ORDERS},
             "ja": {"tn": TN_ORDERS, "itn": ITN_ORDERS},
+            "de": {"tn": DE_TN_ORDERS, "itn": DE_ITN_ORDERS},
             "ko": {"tn": KO_TN_ORDERS, "itn": KO_ITN_ORDERS},
         }
         self.orders = schemas[lang][operator]

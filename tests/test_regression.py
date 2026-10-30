@@ -18,8 +18,10 @@ def load_cases():
         for filename in suite["files"]:
             path = DATA / suite["lang"] / suite["operator"] / filename
             for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
-                if suite["lang"] == "ko":
+                if suite["lang"] in ("ko", "de"):
                     source, expected = line.split("~")
+                    if suite["lang"] == "de" and suite["operator"] == "tn":
+                        source, expected = expected, source
                 else:
                     # Match upstream parse_test_case; Korean spaces are significant.
                     source, expected = (value.strip() for value in line.split("=>"))

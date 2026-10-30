@@ -14,6 +14,7 @@
 
 from collections.abc import Mapping
 from functools import lru_cache
+from itertools import product
 from importlib.resources import files
 from pathlib import Path
 
@@ -89,6 +90,42 @@ KO_ITN_ORDERS = {
     "whitelist": ["value"],
     "word": ["value"],
 }
+DE_TN_ORDERS = {
+    "date": ["day", "month", "year"],
+    "measure": [
+        "kind",
+        "prefix",
+        "negative",
+        "integer",
+        "integer_part",
+        "fractional_part",
+        "quantity",
+        "numerator",
+        "denominator",
+        "units",
+    ],
+    "money": ["kind", "negative", "integer_part", "fractional_part", "quantity", "currency"],
+    "time": ["hours", "minutes", "seconds", "zone"],
+}
+DE_ITN_ORDERS = {
+    "date": ["day", "month", "year"],
+    "electronic": ["protocol", "username", "domain"],
+    "measure": [
+        "prefix",
+        "negative",
+        "fraction_negative",
+        "integer",
+        "integer_part",
+        "conjunction",
+        "numerator",
+        "denominator",
+        "fractional_part",
+        "quantity",
+        "units",
+    ],
+    "money": ["currency", "integer_part", "fractional_part", "quantity", "conjunction", "minor_part", "currency_minor"],
+    "time": ["kind", "hours", "minutes", "seconds", "zone"],
+}
 EN_ITN_ORDERS = ITN_ORDERS
 FST_PATHS = {
     "preprocess": {
@@ -128,6 +165,18 @@ FST_PATHS = {
             "verbalizer_enable_0_to_9": fst_path("ja/itn/verbalizer_enable_0_to_9.fst"),
             "verbalizer": fst_path("ja/itn/verbalizer.fst"),
         },
+    },
+    "de": {
+        "tn": {
+            name: fst_path(f"de/tn/{name}.fst")
+            for name in ("tagger", "verbalizer", "tagger_nondeterministic", "verbalizer_nondeterministic")
+        },
+        "itn": {name: fst_path(f"de/itn/{name}.fst") for name in ("tagger", "verbalizer")},
+    },
+    "processors": {
+        "".join(flags): fst_path("processors/{}.fst".format("".join(flags)))
+        for flags in product("01", repeat=5)
+        if "1" in flags
     },
     "ko": {
         operator: {name: fst_path("ko/{}/{}.fst".format(operator, name)) for name in ("tagger", "verbalizer")}
@@ -187,9 +236,16 @@ def get_prefix_fst(lang, operator, enable_0_to_9=False):
 def get_prefix_matcher_fst(lang, operator, enable_0_to_9=False):
     """Load the optional input-only graph for batched suffix search."""
 
-    use_digit_graph = operator == "itn" and enable_0_to_9 and lang != "en"
+    use_digit_graph = operator == "itn" and enable_0_to_9 and lang in ("zh", "ja")
     filename = "prefix_matcher_enable_0_to_9.fst" if use_digit_graph else "prefix_matcher.fst"
     path = Path(fst_path(f"{lang}/{operator}/{filename}"))
     if not path.is_file():
         return None
     return kaldifst.StdVectorFst.read(str(path))
+
+
+PROCESSOR_OPTIONS = ("traditional_to_simple", "remove_interjections", "remove_puncts", "full_to_half", "tag_oov")
+
+
+def processor_key(options):
+    return "".join("1" if options.get(name, False) else "0" for name in PROCESSOR_OPTIONS)

@@ -17,7 +17,7 @@
 models; Pynini is needed only when building models from source.
 
 - **TN and ITN** — convert written expressions into spoken forms for speech synthesis, or spoken expressions into written forms after speech recognition.
-- **Four languages** — Chinese, English, Japanese, and Korean through one Python API and CLI.
+- **Five languages** — Chinese, English, Japanese, Korean, and German through one Python API and CLI.
 - **Inspectable results** — unique n-best candidates, WFST costs, and exact input/output token spans.
 - **Streaming input** — feed new text chunks and finalize each utterance with `flush()`.
 - **On-demand models** — load and cache only the languages and processing options your application uses.
@@ -30,12 +30,13 @@ models; Pynini is needed only when building models from source.
 | English | `en` | Yes | Yes | `12` → `twelve` |
 | Japanese | `ja` | Yes | Yes | `12` → `十二` |
 | Korean | `ko` | Yes | Yes | `12` → `십이` |
+| German | `de` | Yes | Yes | `12` → `zwölf` |
 
 `lang="auto"` detects Hangul, Japanese kana, and Chinese characters. Digits alone
 use Chinese; Latin text uses English. Specify a language for ambiguous inputs,
 including Japanese text containing only kanji and numbers.
 
-Korean support is available in this source checkout. Before the next package
+German and Korean support is available in this source checkout. Before the next package
 release, follow the [model build instructions](#development-and-model-builds).
 
 ## Quick start
@@ -66,6 +67,8 @@ wetext --lang en --operator itn "twenty three dollars and fifty cents"
 wetext --lang ja --operator tn "12時"
 wetext --lang ko --operator tn "오후 3시 30분"
 wetext --lang ko --operator itn "오천원"
+wetext --lang de --operator tn "12 Euro"
+wetext --lang de --operator itn "zwölf euro"
 ```
 
 Each command prints the normalized text. `--lang` defaults to `auto` and
@@ -98,9 +101,27 @@ print(repr(normalizer.normalize("2024년")))  # '이천이십사년 '
 print(normalizer.normalize("십이", operator="itn"))  # 12
 ```
 
+### German rule modes
+
+Use an explicit `lang="de"`; automatic detection treats Latin text as English.
+German TN defaults to `deterministic=True`. Enable the upstream alternative
+readings with `deterministic=False`, and use `nbest` to retrieve candidates:
+
+```python
+from wetext import Normalizer
+
+normalizer = Normalizer(lang="de", deterministic=False)
+print(normalizer.normalize("dr."))  # doktor
+print(normalizer.normalize("12 Euro", nbest=3))
+```
+
+The CLI exposes `--deterministic` / `--no-deterministic` for this mode. The option
+has no effect on other languages or ITN. German streaming retains context until
+`flush()`, like Korean.
+
 ### Processing options
 
-All Boolean options default to `False`. The CLI uses the corresponding
+The processing options below default to `False`. The CLI uses the corresponding
 hyphenated flag, for example `remove_erhua=True` becomes `--remove-erhua`.
 
 | Python option | Behavior |
@@ -183,7 +204,7 @@ print(stream.flush())  # 价格是十二点五元
 Streaming requires an explicit language. Its default direction is `itn`;
 `Normalizer` defaults to `tn`. Call `reset()` before reusing a flushed stream.
 
-Korean retains its input context until `flush()` to preserve exact normalization.
+Korean and German retain their input context until `flush()` to preserve exact normalization.
 Older model bundles without streaming prefix graphs also retain more context.
 For unusually long unfinished expressions, only the tail is normalized for the
 current display; `flush()` normalizes all remaining input exactly.
@@ -202,7 +223,7 @@ To build all models from the upstream revision used by this release workflow:
 
 ```bash
 git clone https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
-git -C /tmp/WeTextProcessing checkout 31779ac
+git -C /tmp/WeTextProcessing checkout 943259052c15bd6999f5c46d931241d5e9b4df86
 pip install -e . /tmp/WeTextProcessing pytest build
 PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
 python -m pytest tests -q
@@ -217,9 +238,15 @@ Rebuild a single language with `python build_fsts.py --lang ko` (with the same
 upstream `PYTHONPATH`). Korean models require upstream commit `31779ac` or later,
 which includes [WeTextProcessing PR #381](https://github.com/wenet-e2e/WeTextProcessing/pull/381).
 
-The [regression fixture inventory](tests/data/README.md) covers all four languages
+The [regression fixture inventory](tests/data/README.md) covers all five languages
 through ordinary output and exact mapping checks. Pull requests rebuild models
 and run this suite automatically.
+
+German models and fused postprocessors use upstream revision `9432590`, which
+includes [German TN/ITN (#382)](https://github.com/wenet-e2e/WeTextProcessing/pull/382)
+and [character-level postprocessor composition (#383)](https://github.com/wenet-e2e/WeTextProcessing/pull/383).
+The build exports all 31 nonempty postprocessor configurations, so the runtime
+can load a fused rewrite instead of composing multiple whole-string rewrites.
 
 The release workflow accepts an `upstream_ref` to select the grammar revision and
 runs regression tests before packaging. Models are loaded on first use and
