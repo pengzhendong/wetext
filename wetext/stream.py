@@ -1,7 +1,9 @@
 """Stateful streaming text normalization."""
 
+import kaldifst
+
 from wetext.config import NormalizerConfig
-from wetext.constants import get_prefix_fst
+from wetext.constants import get_prefix_fst, get_prefix_matcher_fst
 from wetext.fst_utils import compose_input
 from wetext.utils import normalize
 
@@ -15,11 +17,65 @@ def _is_ascii_token_char(char):
     return char.isascii() and (char.isalnum() or char in _ASCII_TOKEN_EXTRA)
 
 
+def _suffix_union_acceptor(text):
+    """Build one shared-tail FST containing every character-aligned suffix."""
+
+    data = text.encode("utf-8")
+    graph = kaldifst.StdVectorFst()
+    states = [graph.add_state() for _ in range(len(data) + 1)]
+    start = graph.add_state()
+    graph.start = start
+
+    for index, label in enumerate(data):
+        graph.add_arc(
+            states[index],
+            kaldifst.StdArc(label, label, 0.0, states[index + 1]),
+        )
+    graph.set_final(states[-1], 0.0)
+
+    byte_offset = 0
+    for character_offset, char in enumerate(text):
+        # The matcher graph is unweighted, so shortest-path cost selects the
+        # earliest character-aligned suffix that remains a semantic prefix.
+        graph.add_arc(
+            start,
+            kaldifst.StdArc(
+                0,
+                0,
+                float(character_offset),
+                states[byte_offset],
+            ),
+        )
+        byte_offset += len(char.encode("utf-8"))
+
+    kaldifst.arcsort(graph, "olabel")
+    return graph
+
+
+def _match_prefix_position_batched(text, matcher):
+    """Find the earliest matching suffix with one shared-tail composition."""
+
+    if not text:
+        return 0
+    lattice = kaldifst.compose(_suffix_union_acceptor(text), matcher)
+    if lattice.start == -1:
+        return len(text)
+    path = kaldifst.shortest_path(lattice, 1)
+    succeeded, _input_labels, _output_labels, weight = kaldifst.get_linear_symbol_sequence(path)
+    if not succeeded:
+        raise RuntimeError("stream prefix matcher returned a non-linear path")
+    return int(round(weight.value))
+
+
 def _match_prefix_position(text, lang, operator, enable_0_to_9):
     """Return the earliest suffix that may grow into a semantic rule.
 
     ``None`` means that the installed model bundle predates streaming support.
     """
+
+    matcher = get_prefix_matcher_fst(lang, operator, enable_0_to_9)
+    if matcher is not None:
+        return _match_prefix_position_batched(text, matcher)
 
     graph = get_prefix_fst(lang, operator, enable_0_to_9)
     if graph is None:

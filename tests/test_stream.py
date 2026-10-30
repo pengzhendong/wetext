@@ -1,9 +1,12 @@
 import pytest
+import kaldifst
 
 import wetext.stream as streaming
 from wetext import StreamNormalizer
+from wetext.fst_utils import acceptor
 
 RULE = "二十米"
+REAL_MATCH_PREFIX_POSITION = streaming._match_prefix_position
 
 
 def fake_match_prefix_position(text, _lang, _operator, _enable_0_to_9):
@@ -16,6 +19,13 @@ def fake_match_prefix_position(text, _lang, _operator, _enable_0_to_9):
 def fake_normalize(text, config):
     del config
     return text.replace(RULE, "20m").replace("二十", "20")
+
+
+def prefix_matcher(rule):
+    matcher = acceptor(rule)
+    for state in kaldifst.StateIterator(matcher):
+        matcher.set_final(state, 0.0)
+    return matcher
 
 
 @pytest.fixture(autouse=True)
@@ -31,6 +41,41 @@ def test_stream_owns_pending_state_and_returns_current_text():
     assert stream.feed("二十") == "今天有20"
     assert stream.feed("米") == "今天有20m"
     assert stream.flush() == "今天有20m"
+
+
+@pytest.mark.parametrize(
+    ("text", "position"),
+    [
+        ("", 0),
+        ("今天有二十", 3),
+        ("今天有二十米", 3),
+        ("二十米后", 4),
+        ("啊二", 1),
+    ],
+)
+def test_batched_prefix_matcher_finds_earliest_character_suffix(text, position):
+    assert streaming._match_prefix_position_batched(text, prefix_matcher(RULE)) == position
+
+
+def test_runtime_prefers_batched_matcher_and_composes_once(monkeypatch):
+    matcher = prefix_matcher(RULE)
+    monkeypatch.setattr(streaming, "_match_prefix_position", REAL_MATCH_PREFIX_POSITION)
+    monkeypatch.setattr(streaming, "get_prefix_matcher_fst", lambda *_args: matcher)
+
+    def unexpected_legacy_graph(*_args):
+        raise AssertionError("the legacy prefix graph must not be loaded")
+
+    monkeypatch.setattr(streaming, "get_prefix_fst", unexpected_legacy_graph)
+    compose = streaming.kaldifst.compose
+    calls = []
+
+    def counted_compose(*args):
+        calls.append(args)
+        return compose(*args)
+
+    monkeypatch.setattr(streaming.kaldifst, "compose", counted_compose)
+    assert streaming._match_prefix_position("今天有二十", "zh", "itn", False) == 3
+    assert len(calls) == 1
 
 
 @pytest.mark.parametrize("operator", ["itn", "tn"])
