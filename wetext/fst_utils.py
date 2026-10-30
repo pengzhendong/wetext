@@ -26,7 +26,7 @@ def constrain_output(lattice, text):
     return kaldifst.compose(lattice, output)
 
 
-def project_output(lattice):
+def project_output(lattice, determinize=True):
     lines = []
     for state in kaldifst.StateIterator(lattice):
         for arc in kaldifst.ArcIterator(lattice, state):
@@ -46,7 +46,7 @@ def project_output(lattice):
         return kaldifst.StdVectorFst()
     projected = kaldifst.compile("\n".join(lines))
     kaldifst.rmepsilon(projected)
-    return kaldifst.determinize(projected)
+    return kaldifst.determinize(projected) if determinize else projected
 
 
 def linear_path(path):
@@ -86,7 +86,8 @@ class WeightedOutput:
 
 
 class UniqueOutputPathStream:
-    def __init__(self, lattice, prefer_native=False):
+    def __init__(self, lattice, prefer_native=False, native_projection=False):
+        self.native_projection = native_projection
         self.prefer_native = prefer_native
         self.lattice = lattice
         self.items = []
@@ -101,9 +102,12 @@ class UniqueOutputPathStream:
             return
         if self.prefer_native and self.limit == 0 and self.lattice.start != -1:
             # Preserve the native one-best tie choice before enumerating
-            # remaining unique outputs. Korean verbalizers contain meaningful
-            # equal-cost alternatives (e.g. 만천 -> 11000 versus 1000).
-            _, output, weight = linear_path(kaldifst.shortest_path(self.lattice, 1))
+            # remaining unique outputs. Determinization can change meaningful
+            # equal-cost choices (Korean numbers, Chinese and English times).
+            # English TN selects its tie on the output projection, matching
+            # upstream punctuation spacing and its established n-best order.
+            graph = project_output(self.lattice, determinize=False) if self.native_projection else self.lattice
+            _, output, weight = linear_path(kaldifst.shortest_path(graph, 1))
             self.items = [WeightedOutput(output, weight, -1)]
             self.limit = 1
             return

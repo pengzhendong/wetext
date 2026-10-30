@@ -159,6 +159,7 @@ def build_zh_itn():
 
     enable_0_to_9 = StreamingZhInverseNormalizer(enable_0_to_9=True, **options)
     write_graph(enable_0_to_9.tagger, "zh/itn/tagger_enable_0_to_9.fst")
+    write_graph(enable_0_to_9.verbalizer, "zh/itn/verbalizer_enable_0_to_9.fst")
     write_prefix_graph(enable_0_to_9.stream_prefix_tagger, "zh/itn/prefix_enable_0_to_9.fst")
 
 
@@ -202,6 +203,7 @@ def build_ja_itn():
 
     enable_0_to_9 = StreamingJaInverseNormalizer(enable_0_to_9=True, **options)
     write_graph(enable_0_to_9.tagger, "ja/itn/tagger_enable_0_to_9.fst")
+    write_graph(enable_0_to_9.verbalizer, "ja/itn/verbalizer_enable_0_to_9.fst")
     write_prefix_graph(enable_0_to_9.stream_prefix_tagger, "ja/itn/prefix_enable_0_to_9.fst")
 
 

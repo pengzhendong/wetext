@@ -1,0 +1,202 @@
+[
+  {
+    "id": "zh-tn-TestNormalizer",
+    "lang": "zh",
+    "operator": "tn",
+    "options": {
+      "traditional_to_simple": true,
+      "full_to_half": true,
+      "remove_interjections": true,
+      "remove_erhua": true,
+      "tag_oov": true
+    },
+    "files": [
+      "cardinal.txt",
+      "char.txt",
+      "date.txt",
+      "fraction.txt",
+      "math.txt",
+      "money.txt",
+      "time.txt",
+      "whitelist.txt",
+      "normalizer.txt",
+      "normalizer_tag_oov.txt"
+    ],
+    "count": 95
+  },
+  {
+    "id": "zh-itn-TestNormalizer",
+    "lang": "zh",
+    "operator": "itn",
+    "options": {
+      "enable_0_to_9": true,
+      "remove_interjections": true
+    },
+    "files": [
+      "cardinal.txt",
+      "char.txt",
+      "date.txt",
+      "fraction.txt",
+      "math.txt",
+      "measure.txt",
+      "money.txt",
+      "time.txt",
+      "whitelist.txt",
+      "number.txt",
+      "license_plate.txt",
+      "train_number.txt",
+      "normalizer.txt"
+    ],
+    "count": 197
+  },
+  {
+    "id": "zh-itn-TestNormalizerEnablestandalonenumberDisable0to9",
+    "lang": "zh",
+    "operator": "itn",
+    "options": {
+      "enable_0_to_9": false,
+      "remove_interjections": true
+    },
+    "files": [
+      "char.txt",
+      "date.txt",
+      "fraction.txt",
+      "math.txt",
+      "money.txt",
+      "time.txt",
+      "whitelist.txt",
+      "license_plate.txt",
+      "normalizer_enable_standalone_number_disable_0_to_9.txt"
+    ],
+    "count": 91
+  },
+  {
+    "id": "en-tn-TestNormalizer",
+    "lang": "en",
+    "operator": "tn",
+    "options": {},
+    "files": [
+      "normalizer.txt"
+    ],
+    "count": 11
+  },
+  {
+    "id": "en-itn-TestNormalizer",
+    "lang": "en",
+    "operator": "itn",
+    "options": {},
+    "files": [
+      "en_cardinal.txt",
+      "en_ordinal.txt",
+      "en_decimal.txt",
+      "en_date.txt",
+      "en_time.txt",
+      "en_money.txt",
+      "en_measure.txt",
+      "en_telephone.txt",
+      "en_electronic.txt",
+      "en_whitelist.txt",
+      "en_word.txt"
+    ],
+    "count": 487
+  },
+  {
+    "id": "ja-tn-TestNormalizer",
+    "lang": "ja",
+    "operator": "tn",
+    "options": {
+      "full_to_half": true
+    },
+    "files": [
+      "cardinal.txt",
+      "char.txt",
+      "date.txt",
+      "fraction.txt",
+      "math.txt",
+      "measure.txt",
+      "money.txt",
+      "sport.txt",
+      "time.txt",
+      "whitelist.txt"
+    ],
+    "count": 141
+  },
+  {
+    "id": "ja-itn-TestNormalizer",
+    "lang": "ja",
+    "operator": "itn",
+    "options": {
+      "enable_0_to_9": true
+    },
+    "files": [
+      "cardinal.txt",
+      "char.txt",
+      "date.txt",
+      "fraction.txt",
+      "math.txt",
+      "measure.txt",
+      "money.txt",
+      "number.txt",
+      "time.txt",
+      "whitelist.txt"
+    ],
+    "count": 115
+  },
+  {
+    "id": "ja-itn-TestNormalizerEnablestandalonenumberDisable0to9",
+    "lang": "ja",
+    "operator": "itn",
+    "options": {
+      "enable_0_to_9": false
+    },
+    "files": [
+      "char.txt",
+      "date.txt",
+      "fraction.txt",
+      "math.txt",
+      "measure.txt",
+      "money.txt",
+      "time.txt",
+      "whitelist.txt",
+      "normalizer_enable_standalone_number_disable_0_to_9.txt"
+    ],
+    "count": 117
+  },
+  {
+    "id": "ko-tn",
+    "lang": "ko",
+    "operator": "tn",
+    "options": {},
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt"
+    ],
+    "count": 395
+  },
+  {
+    "id": "ko-itn",
+    "lang": "ko",
+    "operator": "itn",
+    "options": {},
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt"
+    ],
+    "count": 209
+  }
+]

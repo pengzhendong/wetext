@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pytest
 from click.testing import CliRunner
 
@@ -7,34 +5,6 @@ from wetext import Normalizer, StreamNormalizer
 from wetext.cli import main
 from wetext.token_parser import TokenParseError, TokenParser
 from wetext.utils import get_lang
-
-
-CASES = [
-    (operator, source, expected)
-    for operator in ("tn", "itn")
-    for path in sorted((Path(__file__).parent / "data" / "ko" / operator).glob("*.txt"))
-    for line in path.read_text().splitlines()
-    for source, expected in [line.split("~")]
-]
-
-
-def test_fixture_counts():
-    assert sum(op == "tn" for op, _, _ in CASES) == 395
-    assert sum(op == "itn" for op, _, _ in CASES) == 209
-
-
-@pytest.mark.parametrize("operator,source,expected", CASES)
-def test_source_cases(operator, source, expected):
-    assert Normalizer(lang="ko", operator=operator).normalize(source) == expected
-
-
-@pytest.mark.parametrize("operator,source,expected", CASES)
-def test_source_mappings(operator, source, expected):
-    result = Normalizer(lang="ko", operator=operator).normalize_with_mapping(source, include_identity=True)
-    assert result.output_text == expected
-    for mapping in result.mappings:
-        assert source[mapping.input_start : mapping.input_end] == mapping.input_text
-        assert expected[mapping.output_start : mapping.output_end] == mapping.output_text
 
 
 @pytest.mark.parametrize(

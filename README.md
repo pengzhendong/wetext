@@ -217,6 +217,10 @@ Rebuild a single language with `python build_fsts.py --lang ko` (with the same
 upstream `PYTHONPATH`). Korean models require upstream commit `31779ac` or later,
 which includes [WeTextProcessing PR #381](https://github.com/wenet-e2e/WeTextProcessing/pull/381).
 
+The [regression fixture inventory](tests/data/README.md) covers all four languages
+through ordinary output and exact mapping checks. Pull requests rebuild models
+and run this suite automatically.
+
 The release workflow accepts an `upstream_ref` to select the grammar revision and
 runs regression tests before packaging. Models are loaded on first use and
 cached in process; the runtime does not compile rules or write a model cache.

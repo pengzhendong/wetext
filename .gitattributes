@@ -1,2 +1,2 @@
-# Upstream Korean date fixtures include meaningful output spaces.
-tests/data/ko/tn/test_cases_date.txt whitespace=-blank-at-eol
+# Keep upstream regression fixtures byte-for-byte, including output spaces.
+tests/data/*/*/*.txt whitespace=-blank-at-eol
