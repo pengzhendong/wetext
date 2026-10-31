@@ -17,7 +17,7 @@
 models; Pynini is needed only when building models from source.
 
 - **TN and ITN** — convert written expressions into spoken forms for speech synthesis, or spoken expressions into written forms after speech recognition.
-- **Fourteen languages** — One Python API and CLI for all 14 upstream languages.
+- **Multilingual pipelines** — 19 languages with TN/ITN, plus Hindi–English and Spanish–English ITN.
 - **Inspectable results** — unique n-best candidates, WFST costs, and exact input/output token spans.
 - **Streaming input** — feed new text chunks and finalize each utterance with `flush()`.
 - **On-demand models** — load and cache only the languages and processing options your application uses.
@@ -40,11 +40,20 @@ models; Pynini is needed only when building models from source.
 | Swedish | `sv` | Yes | Yes |
 | Spanish | `es` | Yes | Yes |
 | Hindi | `hi` | Yes | Yes |
+| Kinyarwanda | `rw` | Yes | Yes |
+| Marathi | `mr` | Yes | Yes |
+| Italian | `it` | Yes | Yes |
+| Hebrew | `he` | Yes | Yes |
+| Hungarian | `hu` | Yes | Yes |
+| Hindi–English | `hi_en` | No | Yes |
+| Spanish–English | `es_en` | No | Yes |
 
 `lang="auto"` uses script-based heuristics for Chinese, Japanese kana, Hangul,
-Armenian, Arabic, Devanagari (Hindi), and Cyrillic (Russian). Digits alone use
+Armenian, Arabic, Hebrew, Devanagari (Hindi), and Cyrillic (Russian). Digits alone use
 Chinese; Latin text uses English. Specify a language for other Latin languages
 and for ambiguous inputs, such as Japanese text containing only kanji.
+Specify `lang="mr"` for Marathi; its script overlaps with Hindi. Code-mixed
+ITN also requires an explicit language code.
 
 The latest languages are available in this source checkout. Before the next
 package release, follow the [model build instructions](#development-and-model-builds).
@@ -79,6 +88,8 @@ wetext --lang ko --operator tn "오후 3시 30분"
 wetext --lang ko --operator itn "오천원"
 wetext --lang de --operator tn "12 Euro"
 wetext --lang de --operator itn "zwölf euro"
+wetext --lang hi_en --operator itn "मैं twenty three साल का हूँ"
+wetext --lang es_en --operator itn "pagué doce dólares and two dollars"
 ```
 
 Each command prints the normalized text. `--lang` defaults to `auto` and
@@ -100,7 +111,7 @@ print(normalizer.normalize("十二", operator="itn"))  # 12
 ```
 
 The function API is also available as `wetext.normalize(text, lang="zh", operator="tn")`.
-Input is trimmed before normalization. Korean TN retains meaningful trailing
+Input is trimmed before normalization. Korean and Kinyarwanda TN retain meaningful trailing
 spaces emitted by upstream rules:
 
 ```python
@@ -129,7 +140,7 @@ The CLI exposes `--deterministic` / `--no-deterministic` for these modes. The
 option has no effect on other pipelines. Russian TN always exposes alternative
 readings and does not use this switch.
 
-Spanish ITN additionally supports `cased=True` (`--cased` on the CLI):
+Spanish and code-mixed ITN additionally support `cased=True` (`--cased` on the CLI):
 
 ```python
 from wetext import Normalizer
@@ -140,6 +151,21 @@ print(normalizer.normalize("Doce Dólares"))  # $12
 
 Some upstream fixtures allow multiple readings. N-best ordering follows WFST
 costs; equal-cost alternatives may differ in order across inference engines.
+
+### Code-mixed ITN
+
+`hi_en` and `es_en` support ITN only. Always set `operator="itn"`; TN requests
+are rejected with a clear error. Both pipelines support `cased=True` / `--cased`
+for capitalized input:
+
+```python
+from wetext import Normalizer
+
+normalizer = Normalizer(lang="hi_en", operator="itn")
+print(normalizer.normalize("मैं twenty three साल का हूँ"))  # मैं 23 साल का हूँ
+normalizer = Normalizer(lang="es_en", operator="itn", cased=True)
+print(normalizer.normalize("Doce Dólares"))  # $12
+```
 
 ### Processing options
 
@@ -246,7 +272,7 @@ To build all models from the upstream revision used by this release workflow:
 
 ```bash
 git clone https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
-git -C /tmp/WeTextProcessing checkout 590ee51e8a8eb583bd3422ebd6566dd7124a0bf7
+git -C /tmp/WeTextProcessing checkout c3b4d88d11c5efef817881f7e515cbdd3a19d99b
 pip install -e . /tmp/WeTextProcessing pytest build
 PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py
 python -m pytest tests -q
@@ -261,7 +287,7 @@ Rebuild a single language with `python build_fsts.py --lang ko` (with the same
 upstream `PYTHONPATH`). Korean models require upstream commit `31779ac` or later,
 which includes [WeTextProcessing PR #381](https://github.com/wenet-e2e/WeTextProcessing/pull/381).
 
-The [regression fixture inventory](tests/data/README.md) covers all fourteen languages
+The [regression fixture inventory](tests/data/README.md) covers every supported pipeline
 through ordinary output and exact mapping checks. Pull requests rebuild models
 and run this suite automatically.
 
@@ -271,9 +297,10 @@ and [character-level postprocessor composition (#383)](https://github.com/wenet-
 The build exports all 31 nonempty postprocessor configurations, so the runtime
 can load a fused rewrite instead of composing multiple whole-string rewrites.
 
-Builds now pin upstream revision `590ee51`, including language additions
-[#384–#392](https://github.com/wenet-e2e/WeTextProcessing/pulls?q=is%3Apr+is%3Amerged).
-`wetext/language_registry.json` declares available pipelines and model variants.
+Builds now pin upstream revision `c3b4d88`, including the cross-language
+punctuation and robustness fixes in [#393](https://github.com/wenet-e2e/WeTextProcessing/pull/393)
+and the pipeline additions in #394–#400.
+`wetext/language_registry.json` declares available directions, whitespace contracts, and model variants.
 New-language field-order schemas are exported with the FSTs and loaded as JSON;
 runtime inference does not import upstream Python rules.
 

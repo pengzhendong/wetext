@@ -3,84 +3,229 @@
     "module": "chinese",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": true
+    "stream_prefix": true,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "en": {
     "module": "english",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": true
+    "stream_prefix": true,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "ja": {
     "module": "japanese",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": true
+    "stream_prefix": true,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "ko": {
     "module": "korean",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": true
   },
   "de": {
     "module": "german",
     "tn_deterministic": true,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "hy": {
     "module": "armenian",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "ar": {
     "module": "arabic",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "fr": {
     "module": "french",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "pt": {
     "module": "portuguese",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "vi": {
     "module": "vietnamese",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "ru": {
     "module": "russian",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "sv": {
     "module": "swedish",
     "tn_deterministic": true,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "es": {
     "module": "spanish",
     "tn_deterministic": true,
     "itn_cased": true,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   },
   "hi": {
     "module": "hindi",
     "tn_deterministic": false,
     "itn_cased": false,
-    "stream_prefix": false
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
+  },
+  "rw": {
+    "module": "kinyarwanda",
+    "tn_deterministic": false,
+    "itn_cased": false,
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": true
+  },
+  "mr": {
+    "module": "marathi",
+    "tn_deterministic": false,
+    "itn_cased": false,
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
+  },
+  "hi_en": {
+    "module": "hindi_english",
+    "tn_deterministic": false,
+    "itn_cased": true,
+    "stream_prefix": false,
+    "directions": [
+      "itn"
+    ],
+    "preserve_output_whitespace": false
+  },
+  "it": {
+    "module": "italian",
+    "tn_deterministic": false,
+    "itn_cased": false,
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
+  },
+  "he": {
+    "module": "hebrew",
+    "tn_deterministic": false,
+    "itn_cased": false,
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
+  },
+  "hu": {
+    "module": "hungarian",
+    "tn_deterministic": false,
+    "itn_cased": false,
+    "stream_prefix": false,
+    "directions": [
+      "tn",
+      "itn"
+    ],
+    "preserve_output_whitespace": false
+  },
+  "es_en": {
+    "module": "spanish_english",
+    "tn_deterministic": false,
+    "itn_cased": true,
+    "stream_prefix": false,
+    "directions": [
+      "itn"
+    ],
+    "preserve_output_whitespace": false
   }
 }

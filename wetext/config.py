@@ -15,12 +15,37 @@
 from dataclasses import dataclass
 from typing import Literal
 
+from wetext.languages import validate_pipeline
+
 
 @dataclass
 class NormalizerConfig:
     """Configuration for text normalization."""
 
-    lang: Literal["auto", "en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"] = "auto"
+    lang: Literal[
+        "auto",
+        "en",
+        "zh",
+        "ja",
+        "ko",
+        "de",
+        "hy",
+        "ar",
+        "fr",
+        "pt",
+        "vi",
+        "ru",
+        "sv",
+        "es",
+        "hi",
+        "rw",
+        "mr",
+        "hi_en",
+        "it",
+        "he",
+        "hu",
+        "es_en",
+    ] = "auto"
     """Language of the input text ('auto' for automatic detection)."""
 
     operator: Literal["tn", "itn"] = "tn"
@@ -54,4 +79,7 @@ class NormalizerConfig:
     """Use deterministic German, Spanish or Swedish TN rules; False enables alternate readings."""
 
     cased: bool = False
-    """Accept capitalized spoken words in Spanish ITN."""
+    """Accept capitalized spoken words in Spanish and code-mixed ITN."""
+
+    def __post_init__(self):
+        validate_pipeline(self.lang, self.operator)

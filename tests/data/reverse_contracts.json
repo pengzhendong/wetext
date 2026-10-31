@@ -1,0 +1,106 @@
+[
+  {
+    "lang": "rw",
+    "operator": "itn",
+    "source_operator": "tn",
+    "group_count": 98,
+    "checked_count": 93,
+    "excluded": {
+      "kabiri gatatu kane gatanu": "2 3 4 5",
+      "maroki": "maroki",
+      "televiziyo": "televiziyo",
+      "no": "no",
+      "x": "x"
+    },
+    "upstream_contract": "EXCLUSIONS = {\n    # TN deletes the commas of a digit list; the separators are not recoverable.\n    \"kabiri gatatu kane gatanu\": \"2 3 4 5\",\n    # Transliterations are the written Kinyarwanda words and are not inverted.\n    \"maroki\": \"maroki\",\n    \"televiziyo\": \"televiziyo\",\n    # TN strips the surrounding whitespace that the written side keeps.\n    \"no\": \"no\",\n    \"x\": \"x\",\n}"
+  },
+  {
+    "lang": "mr",
+    "operator": "tn",
+    "source_operator": "itn",
+    "group_count": 128,
+    "checked_count": 121,
+    "excluded": {
+      "५८०१": "ITN accepts the colloquial hundreds count; TN reads cardinals with हजार",
+      "७५१६": "ITN accepts the colloquial hundreds count; TN reads cardinals with हजार",
+      "-५२००": "ITN accepts the colloquial hundreds count; TN reads cardinals with हजार",
+      "१०:५८": "fixture uses singular मिनिट for two minutes, unlike आठला सात मिनिटे",
+      "०६:४८": "fixture reads :48 as minutes-to, but ०२:४८ as minutes-past",
+      "०९:३०": "fixture reads :30 as वाजून तीस मिनिटे, but ०४:३० as साडे",
+      "म": "spoken side keeps an untrimmed trailing space"
+    },
+    "upstream_contract": "EXCLUDED = {\n    \"५८०१\": \"ITN accepts the colloquial hundreds count; TN reads cardinals with हजार\",\n    \"७५१६\": \"ITN accepts the colloquial hundreds count; TN reads cardinals with हजार\",\n    \"-५२००\": \"ITN accepts the colloquial hundreds count; TN reads cardinals with हजार\",\n    \"१०:५८\": \"fixture uses singular मिनिट for two minutes, unlike आठला सात मिनिटे\",\n    \"०६:४८\": \"fixture reads :48 as minutes-to, but ०२:४८ as minutes-past\",\n    \"०९:३०\": \"fixture reads :30 as वाजून तीस मिनिटे, but ०४:३० as साडे\",\n    \"म\": \"spoken side keeps an untrimmed trailing space\",\n}"
+  },
+  {
+    "lang": "it",
+    "operator": "itn",
+    "source_operator": "tn",
+    "group_count": 55,
+    "checked_count": 50,
+    "excluded": {
+      "cento cinquantacinque giorni": "155 d",
+      "tre euro ventitre centesimi": "3,23€",
+      "quattro sterline venti penny": "4,2 £",
+      "un euro": "1 eur",
+      "un euro per il caffè": "1 eur per il caffè"
+    },
+    "upstream_contract": "EXCLUDED = {\n    # ``d`` for days is not written back: ``sette giorni`` (also a TN fixture) stays in words.\n    \"cento cinquantacinque giorni\": \"155 d\",\n    # Spacing only: ITN writes every currency symbol after a space (``3,23 €``).\n    \"tre euro ventitre centesimi\": \"3,23€\",\n    # TN reads ``4,2`` and ``4,20`` alike; ITN writes two-digit minor units (``4,20 £``).\n    \"quattro sterline venti penny\": \"4,2 £\",\n    # TN reads ``eur`` and ``€`` alike; ITN writes the symbol (``1 €``).\n    \"un euro\": \"1 eur\",\n    \"un euro per il caffè\": \"1 eur per il caffè\",\n}"
+  },
+  {
+    "lang": "he",
+    "operator": "tn",
+    "source_operator": "itn",
+    "group_count": 296,
+    "checked_count": 271,
+    "excluded": {
+      "77": "masculine units (שבעים ושבעה); counting is feminine elsewhere",
+      "330": "ו before round tens after hundreds; 230, 990 and 1,130 omit it",
+      "-3,220": "ו before round tens after hundreds; 230, 990 and 1,130 omit it",
+      "450 מ״ג": "ו before round tens after hundreds; 230, 990 and 1,130 omit it",
+      "כ-101,200": "ו before hundreds after thousands; 2,100 and 10,200 omit it",
+      "1,000,015": "no ו before a final teen; 2,011 and 10,015 use it",
+      "10,201": "masculine final one (ואחד); counting is feminine elsewhere",
+      "-101,220": "feminine one before אלף; 101,000 and 101,200 use ואחד אלף",
+      "-101,229": "feminine one before אלף; 101,000 and 101,200 use ואחד אלף",
+      "3,001,005": "the only spoken form glues מיליוןאלף without a space",
+      "1,000%": "plural אחוזים; every other percentage uses אחוז",
+      "79.5": "fraction word for an integer above 9; 12.5 and 18.25 use נקודה",
+      "10.2": "fraction word for .2; 5.2 and 60.2 use נקודה",
+      "1.25 מיליארד": "נקודה for .25 of 1; 3.25-style amounts use ורבע (5.25, 8.25)",
+      "1.59 מיליארד": "digit-by-digit .59; 1.84 and 18.56 read two digits as a number",
+      "18.25": "digit-by-digit .25; 18.85 and 18.22 read two digits as a number",
+      "-12.5°": "spelling שתים and a trailing space in the spoken form",
+      "ה-12.12.1991": "feminine day (השתיים עשרה); days are masculine (שבעה עשר באוגוסט)",
+      "26.4.2024": "feminine or ordinal day; days are masculine (26.4.24 accepts עשרים ושישה)",
+      "ב-3.3.1990": "ordinal day and ordinal month (בשלישי לשלישי)",
+      "היה בערך בעשירי ב-10.5": "ordinal day after ב and month with ל (בעשירי למאי)",
+      "1.5": "day.month without year or prefix is a decimal (1.1, 18.6)",
+      "18.1": "day.month without year or prefix is a decimal (1.1, 18.6)",
+      "אני מדבר על 18.4": "day.month without year or prefix is a decimal (1.1, 18.6)",
+      "אמרתי לו שיש לי כאבים ביד, אז הוא בדק אותי": "the spoken form ends with a space"
+    },
+    "upstream_contract": "EXCLUDED = {\n    \"77\": \"masculine units (שבעים ושבעה); counting is feminine elsewhere\",\n    \"330\": \"ו before round tens after hundreds; 230, 990 and 1,130 omit it\",\n    \"-3,220\": \"ו before round tens after hundreds; 230, 990 and 1,130 omit it\",\n    \"450 מ״ג\": \"ו before round tens after hundreds; 230, 990 and 1,130 omit it\",\n    \"כ-101,200\": \"ו before hundreds after thousands; 2,100 and 10,200 omit it\",\n    \"1,000,015\": \"no ו before a final teen; 2,011 and 10,015 use it\",\n    \"10,201\": \"masculine final one (ואחד); counting is feminine elsewhere\",\n    \"-101,220\": \"feminine one before אלף; 101,000 and 101,200 use ואחד אלף\",\n    \"-101,229\": \"feminine one before אלף; 101,000 and 101,200 use ואחד אלף\",\n    \"3,001,005\": \"the only spoken form glues מיליוןאלף without a space\",\n    \"1,000%\": \"plural אחוזים; every other percentage uses אחוז\",\n    \"79.5\": \"fraction word for an integer above 9; 12.5 and 18.25 use נקודה\",\n    \"10.2\": \"fraction word for .2; 5.2 and 60.2 use נקודה\",\n    \"1.25 מיליארד\": \"נקודה for .25 of 1; 3.25-style amounts use ורבע (5.25, 8.25)\",\n    \"1.59 מיליארד\": \"digit-by-digit .59; 1.84 and 18.56 read two digits as a number\",\n    \"18.25\": \"digit-by-digit .25; 18.85 and 18.22 read two digits as a number\",\n    \"-12.5°\": \"spelling שתים and a trailing space in the spoken form\",\n    \"ה-12.12.1991\": \"feminine day (השתיים עשרה); days are masculine (שבעה עשר באוגוסט)\",\n    \"26.4.2024\": \"feminine or ordinal day; days are masculine (26.4.24 accepts עשרים ושישה)\",\n    \"ב-3.3.1990\": \"ordinal day and ordinal month (בשלישי לשלישי)\",\n    \"היה בערך בעשירי ב-10.5\": \"ordinal day after ב and month with ל (בעשירי למאי)\",\n    \"1.5\": \"day.month without year or prefix is a decimal (1.1, 18.6)\",\n    \"18.1\": \"day.month without year or prefix is a decimal (1.1, 18.6)\",\n    \"אני מדבר על 18.4\": \"day.month without year or prefix is a decimal (1.1, 18.6)\",\n    \"אמרתי לו שיש לי כאבים ביד, אז הוא בדק אותי\": \"the spoken form ends with a space\",\n}"
+  },
+  {
+    "lang": "hu",
+    "operator": "itn",
+    "source_operator": "tn",
+    "group_count": 178,
+    "checked_count": 166,
+    "excluded": {
+      "kettőmillió": "only the dot-grouped '2.000.000' is listed; ITN groups with spaces like '1 034 068'",
+      "milliárd": "only the dot-grouped '1.000.000.000' is listed; ITN groups with spaces",
+      "kettőmilliárd": "only the dot-grouped '2.000.000.000' is listed; ITN groups with spaces",
+      "százharmincegyezer-száztizenegyedik": "only '131 111.' is listed; ITN writes ordinals ungrouped like '455456.'",
+      "mínusz tizenegy egész négyezer-hat tízezred milliárd": "only '-11,4006 milliárd' is listed; ITN abbreviates milliárd as in '$1 mrd' and '1 mrd GBP-t'",
+      "kettő egész három tized milliméter": "only '2,3 mm' is listed; ITN attaches units as in '3mm' and '12kg'",
+      "kettőezer-tíz április elsején": "only numeric months ('2010. 04. 1-jén') are listed; ITN keeps month names",
+      "április elsején": "only numeric months ('04. 1-jén') are listed; ITN keeps month names",
+      "plusz harminchat egy négyszáznegyvenegy négyezer": "the listed '+ (36) 1 441-4000' layout is not recoverable from speech",
+      "plusz harminchat nyolcvan ötszázötvenöt száztizenegy": "'+36-80/555-111' conflicts with the space-separated '+36 1 4888 700' layout",
+      "telefon plusz harminchat nyolcvan ötszázötvenöt száztizenegy": "'tel.: +36-80/555-111' uses the dash/slash layout and a colon",
+      "telefon nulla hat negyven negyvenkilenc négyezer-kilencszáznegyvenkilenc": "'tel. 06-40-49-4949' uses the dash layout; ITN writes '06 40 49 4949'"
+    },
+    "upstream_contract": "EXCLUDED = {\n    \"kettőmillió\": \"only the dot-grouped '2.000.000' is listed; ITN groups with spaces like '1 034 068'\",\n    \"milliárd\": \"only the dot-grouped '1.000.000.000' is listed; ITN groups with spaces\",\n    \"kettőmilliárd\": \"only the dot-grouped '2.000.000.000' is listed; ITN groups with spaces\",\n    \"százharmincegyezer-száztizenegyedik\": \"only '131 111.' is listed; ITN writes ordinals ungrouped like '455456.'\",\n    \"mínusz tizenegy egész négyezer-hat tízezred milliárd\":\n        \"only '-11,4006 milliárd' is listed; ITN abbreviates milliárd as in '$1 mrd' and '1 mrd GBP-t'\",\n    \"kettő egész három tized milliméter\": \"only '2,3 mm' is listed; ITN attaches units as in '3mm' and '12kg'\",\n    \"kettőezer-tíz április elsején\": \"only numeric months ('2010. 04. 1-jén') are listed; ITN keeps month names\",\n    \"április elsején\": \"only numeric months ('04. 1-jén') are listed; ITN keeps month names\",\n    \"plusz harminchat egy négyszáznegyvenegy négyezer\":\n        \"the listed '+ (36) 1 441-4000' layout is not recoverable from speech\",\n    \"plusz harminchat nyolcvan ötszázötvenöt száztizenegy\":\n        \"'+36-80/555-111' conflicts with the space-separated '+36 1 4888 700' layout\",\n    \"telefon plusz harminchat nyolcvan ötszázötvenöt száztizenegy\":\n        \"'tel.: +36-80/555-111' uses the dash/slash layout and a colon\",\n    \"telefon nulla hat negyven negyvenkilenc négyezer-kilencszáznegyvenkilenc\":\n        \"'tel. 06-40-49-4949' uses the dash layout; ITN writes '06 40 49 4949'\",\n}"
+  }
+]

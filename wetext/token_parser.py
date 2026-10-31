@@ -14,6 +14,8 @@
 
 import string
 
+from wetext.languages import validate_pipeline
+
 from wetext.constants import (
     DE_ITN_ORDERS,
     DE_TN_ORDERS,
@@ -69,6 +71,7 @@ class Token:
 
 class TokenParser:
     def __init__(self, lang, operator="tn"):
+        validate_pipeline(lang, operator)
         schemas = {
             "en": {"tn": EN_TN_ORDERS, "itn": EN_ITN_ORDERS},
             "zh": {"tn": TN_ORDERS, "itn": ITN_ORDERS},

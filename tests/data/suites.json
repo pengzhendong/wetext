@@ -659,5 +659,199 @@
     ],
     "count": 352,
     "format": "tilde"
+  },
+  {
+    "id": "rw-tn",
+    "lang": "rw",
+    "operator": "tn",
+    "options": {},
+    "format": "tilde",
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 100
+  },
+  {
+    "id": "mr-itn",
+    "lang": "mr",
+    "operator": "itn",
+    "options": {},
+    "format": "tilde",
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_time.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 131
+  },
+  {
+    "id": "it-tn",
+    "lang": "it",
+    "operator": "tn",
+    "options": {},
+    "format": "tilde",
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt"
+    ],
+    "count": 52
+  },
+  {
+    "id": "he-itn",
+    "lang": "he",
+    "operator": "itn",
+    "options": {},
+    "format": "tilde",
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_measure.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_full_sentences.txt"
+    ],
+    "count": 337
+  },
+  {
+    "id": "hu-tn",
+    "lang": "hu",
+    "operator": "tn",
+    "options": {},
+    "format": "tilde",
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 205
+  },
+  {
+    "id": "hi_en-itn",
+    "lang": "hi_en",
+    "operator": "itn",
+    "options": {
+      "cased": false
+    },
+    "format": "tilde",
+    "files": [
+      "test_cases_address.txt",
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 416
+  },
+  {
+    "id": "hi_en-itn-cased",
+    "lang": "hi_en",
+    "operator": "itn",
+    "options": {
+      "cased": true
+    },
+    "format": "tilde",
+    "files": [
+      "test_cases_address.txt",
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_date_cased.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 486
+  },
+  {
+    "id": "es_en-itn",
+    "lang": "es_en",
+    "operator": "itn",
+    "options": {
+      "cased": false
+    },
+    "format": "tilde",
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_date.txt",
+      "test_cases_decimal.txt",
+      "test_cases_electronic.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_money.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_telephone.txt",
+      "test_cases_time.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt"
+    ],
+    "count": 749
+  },
+  {
+    "id": "es_en-itn-cased",
+    "lang": "es_en",
+    "operator": "itn",
+    "options": {
+      "cased": true
+    },
+    "format": "tilde",
+    "files": [
+      "test_cases_cardinal.txt",
+      "test_cases_cardinal_cased.txt",
+      "test_cases_date.txt",
+      "test_cases_date_cased.txt",
+      "test_cases_decimal.txt",
+      "test_cases_decimal_cased.txt",
+      "test_cases_electronic.txt",
+      "test_cases_electronic_cased.txt",
+      "test_cases_fraction.txt",
+      "test_cases_measure.txt",
+      "test_cases_measure_cased.txt",
+      "test_cases_money.txt",
+      "test_cases_money_cased.txt",
+      "test_cases_ordinal.txt",
+      "test_cases_ordinal_cased.txt",
+      "test_cases_telephone.txt",
+      "test_cases_telephone_cased.txt",
+      "test_cases_time.txt",
+      "test_cases_time_cased.txt",
+      "test_cases_whitelist.txt",
+      "test_cases_word.txt",
+      "test_cases_word_cased.txt"
+    ],
+    "count": 976
   }
 ]

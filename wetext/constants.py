@@ -197,7 +197,7 @@ for _lang, _pipeline in LANGUAGES.items():
     if _lang in FST_PATHS:
         continue
     FST_PATHS[_lang] = {}
-    for _operator in ("tn", "itn"):
+    for _operator in _pipeline["directions"]:
         _suffixes = [""]
         if _operator == "tn" and _pipeline["tn_deterministic"]:
             _suffixes.append("_nondeterministic")
