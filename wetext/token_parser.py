@@ -24,6 +24,7 @@ from wetext.constants import (
     KO_ITN_ORDERS,
     KO_TN_ORDERS,
     TN_ORDERS,
+    get_token_orders,
 )
 
 
@@ -75,7 +76,7 @@ class TokenParser:
             "de": {"tn": DE_TN_ORDERS, "itn": DE_ITN_ORDERS},
             "ko": {"tn": KO_TN_ORDERS, "itn": KO_ITN_ORDERS},
         }
-        self.orders = schemas[lang][operator]
+        self.orders = schemas[lang][operator] if lang in schemas else get_token_orders(lang, operator)
 
     def load(self, input):
         if not input:

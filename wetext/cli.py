@@ -15,13 +15,17 @@
 import click
 
 from wetext import Normalizer
+from wetext.languages import LANGUAGES
 
 
 @click.command()
 @click.argument("text")
-@click.option("--lang", "-l", default="auto", type=click.Choice(["auto", "en", "zh", "ja", "ko", "de"]))
+@click.option("--lang", "-l", default="auto", type=click.Choice(["auto", *LANGUAGES]))
 @click.option("--operator", "-o", default="tn", type=click.Choice(["tn", "itn"]))
-@click.option("--deterministic/--no-deterministic", default=True, help="Select German TN rule mode.")
+@click.option(
+    "--deterministic/--no-deterministic", default=True, help="Select German, Spanish or Swedish TN rule mode."
+)
+@click.option("--cased/--no-cased", default=False, help="Accept capitalized Spanish ITN input.")
 @click.option("--fix-contractions", is_flag=True, help="Fix contractions.")
 @click.option("--traditional-to-simple", is_flag=True, help="Convert traditional Chinese to simplified Chinese.")
 @click.option("--full-to-half", is_flag=True, help="Convert full-width characters to half-width characters.")

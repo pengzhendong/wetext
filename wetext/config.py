@@ -20,7 +20,7 @@ from typing import Literal
 class NormalizerConfig:
     """Configuration for text normalization."""
 
-    lang: Literal["auto", "en", "zh", "ja", "ko", "de"] = "auto"
+    lang: Literal["auto", "en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"] = "auto"
     """Language of the input text ('auto' for automatic detection)."""
 
     operator: Literal["tn", "itn"] = "tn"
@@ -51,4 +51,7 @@ class NormalizerConfig:
     """Remove 'erhua' suffixes in Chinese (e.g., "哪儿" -> "哪")."""
 
     deterministic: bool = True
-    """Use deterministic German TN rules; False enables alternate readings."""
+    """Use deterministic German, Spanish or Swedish TN rules; False enables alternate readings."""
+
+    cased: bool = False
+    """Accept capitalized spoken words in Spanish ITN."""

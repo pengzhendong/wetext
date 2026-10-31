@@ -17,7 +17,7 @@ jobs:
       - name: Install runtime and grammar compiler
         run: |
           git clone https://github.com/wenet-e2e/WeTextProcessing.git /tmp/WeTextProcessing
-          git -C /tmp/WeTextProcessing checkout 943259052c15bd6999f5c46d931241d5e9b4df86
+          git -C /tmp/WeTextProcessing checkout 590ee51e8a8eb583bd3422ebd6566dd7124a0bf7
           python -m pip install -e . /tmp/WeTextProcessing pytest
       - name: Build all model variants
         run: PYTHONPATH=/tmp/WeTextProcessing python build_fsts.py

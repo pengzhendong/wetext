@@ -2,6 +2,7 @@
 
 import kaldifst
 
+from wetext.languages import LANGUAGES
 from wetext.config import NormalizerConfig
 from wetext.constants import get_prefix_fst, get_prefix_matcher_fst
 from wetext.fst_utils import compose_input
@@ -130,7 +131,7 @@ class StreamNormalizer:
         return raw_head + self._normalize_piece(tail)
 
     def _safe_position(self, text):
-        if self.config.lang in ("ko", "de"):
+        if not LANGUAGES[self.config.lang]["stream_prefix"]:
             return 0
 
         if text and text[-1] in _HARD_COMMIT_BOUNDARIES:
