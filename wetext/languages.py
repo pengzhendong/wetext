@@ -6,7 +6,20 @@ from importlib.resources import files
 LANGUAGES = json.loads(files("wetext").joinpath("language_registry.json").read_text(encoding="utf-8"))
 
 
+def validate_pipeline(lang, operator):
+    if operator not in ("tn", "itn"):
+        raise ValueError("operator must be 'tn' or 'itn'")
+    if lang == "auto":
+        return
+    if lang not in LANGUAGES:
+        raise ValueError(f"unsupported language: {lang}")
+    directions = LANGUAGES[lang]["directions"]
+    if operator not in directions:
+        raise ValueError(f"{lang} supports {', '.join(directions)} only; choose operator='itn'")
+
+
 def model_names(lang, operator, enable_0_to_9=False, remove_erhua=False, deterministic=True, cased=False):
+    validate_pipeline(lang, operator)
     pipeline = LANGUAGES[lang]
     suffix = ""
     if operator == "tn" and pipeline["tn_deterministic"] and not deterministic:

@@ -243,7 +243,7 @@ def build_de():
 
 def build_registered(lang):
     pipeline = LANGUAGES[lang]
-    for operator in ("tn", "itn"):
+    for operator in pipeline["directions"]:
         filename = "normalizer" if operator == "tn" else "inverse_normalizer"
         cls_name = "Normalizer" if operator == "tn" else "InverseNormalizer"
         cls = getattr(import_module(f"{operator}.{pipeline['module']}.{filename}"), cls_name)

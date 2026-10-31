@@ -32,7 +32,7 @@ from wetext.fst_utils import (
     transduce_with_spans,
 )
 from wetext.token_parser import TokenParser
-from wetext.languages import model_names
+from wetext.languages import LANGUAGES, model_names
 
 
 @dataclass(frozen=True)
@@ -191,7 +191,31 @@ def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
     return candidates
 
 
-def get_lang(text: str) -> Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"]:
+def get_lang(
+    text: str,
+) -> Literal[
+    "en",
+    "zh",
+    "ja",
+    "ko",
+    "de",
+    "hy",
+    "ar",
+    "fr",
+    "pt",
+    "vi",
+    "ru",
+    "sv",
+    "es",
+    "hi",
+    "rw",
+    "mr",
+    "hi_en",
+    "it",
+    "he",
+    "hu",
+    "es_en",
+]:
     """
     Get the language of the text.
 
@@ -206,6 +230,7 @@ def get_lang(text: str) -> Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr
         return "ja"
     for lang, ranges in (
         ("hy", ((0x0530, 0x058F),)),
+        ("he", ((0x0590, 0x05FF),)),
         ("ar", ((0x0600, 0x06FF), (0x0750, 0x077F), (0x08A0, 0x08FF))),
         ("hi", ((0x0900, 0x097F),)),
         ("ru", ((0x0400, 0x052F),)),
@@ -301,7 +326,29 @@ def should_normalize(text: str, lang: str, operator: Literal["tn", "itn"], remov
 
 def reorder(
     text: str,
-    lang: Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"],
+    lang: Literal[
+        "en",
+        "zh",
+        "ja",
+        "ko",
+        "de",
+        "hy",
+        "ar",
+        "fr",
+        "pt",
+        "vi",
+        "ru",
+        "sv",
+        "es",
+        "hi",
+        "rw",
+        "mr",
+        "hi_en",
+        "it",
+        "he",
+        "hu",
+        "es_en",
+    ],
     operator: Literal["tn", "itn"],
 ) -> str:
     """
@@ -318,7 +365,29 @@ def reorder(
 
 def tag(
     text: str,
-    lang: Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"],
+    lang: Literal[
+        "en",
+        "zh",
+        "ja",
+        "ko",
+        "de",
+        "hy",
+        "ar",
+        "fr",
+        "pt",
+        "vi",
+        "ru",
+        "sv",
+        "es",
+        "hi",
+        "rw",
+        "mr",
+        "hi_en",
+        "it",
+        "he",
+        "hu",
+        "es_en",
+    ],
     operator: Literal["tn", "itn"],
     enable_0_to_9: bool = False,
     deterministic: bool = True,
@@ -341,7 +410,29 @@ def tag(
 
 def verbalize(
     text: str,
-    lang: Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"],
+    lang: Literal[
+        "en",
+        "zh",
+        "ja",
+        "ko",
+        "de",
+        "hy",
+        "ar",
+        "fr",
+        "pt",
+        "vi",
+        "ru",
+        "sv",
+        "es",
+        "hi",
+        "rw",
+        "mr",
+        "hi_en",
+        "it",
+        "he",
+        "hu",
+        "es_en",
+    ],
     operator: Literal["tn", "itn"],
     remove_erhua: bool = False,
     enable_0_to_9: bool = False,
@@ -361,7 +452,7 @@ def verbalize(
     """
     _, name = model_names(lang, operator, enable_0_to_9, remove_erhua, deterministic, cased)
     output = FSTS[lang][operator][name](text)
-    return output if lang == "ko" else output.strip()
+    return output if LANGUAGES[lang]["preserve_output_whitespace"] else output.strip()
 
 
 def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int = 1, **kwargs):
@@ -403,7 +494,7 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
             config.remove_interjections,
             config.remove_puncts,
             config.tag_oov,
-            strip=lang != "ko",
+            strip=not LANGUAGES[lang]["preserve_output_whitespace"],
         )
     if should_normalize(prepared, lang, config.operator, config.remove_erhua):
         tagger, verbalizer = _graphs(config, lang)
@@ -419,7 +510,7 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
             config.remove_interjections,
             config.remove_puncts,
             config.tag_oov,
-            strip=lang != "ko",
+            strip=not LANGUAGES[lang]["preserve_output_whitespace"],
         )
         outputs = [output]
     return outputs[0] if nbest == 1 else outputs
@@ -448,7 +539,7 @@ def normalize_candidates(text: str, config: Optional[NormalizerConfig] = None, n
             config.remove_interjections,
             config.remove_puncts,
             config.tag_oov,
-            strip=lang != "ko",
+            strip=not LANGUAGES[lang]["preserve_output_whitespace"],
         )
         return [NormalizationCandidate(output, 0.0, 0.0, 0.0, 0, 0)]
 
