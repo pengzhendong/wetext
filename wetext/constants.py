@@ -18,6 +18,8 @@ from itertools import product
 from importlib.resources import files
 from pathlib import Path
 
+from wetext.languages import LANGUAGES
+
 import kaldifst
 from kaldifst import TextNormalizer as normalizer
 
@@ -191,6 +193,23 @@ FST_PATHS = {
 }
 
 
+for _lang, _pipeline in LANGUAGES.items():
+    if _lang in FST_PATHS:
+        continue
+    FST_PATHS[_lang] = {}
+    for _operator in ("tn", "itn"):
+        _suffixes = [""]
+        if _operator == "tn" and _pipeline["tn_deterministic"]:
+            _suffixes.append("_nondeterministic")
+        if _operator == "itn" and _pipeline["itn_cased"]:
+            _suffixes.append("_cased")
+        FST_PATHS[_lang][_operator] = {
+            name + suffix: fst_path(f"{_lang}/{_operator}/{name}{suffix}.fst")
+            for name in ("tagger", "verbalizer")
+            for suffix in _suffixes
+        }
+
+
 class _LazyFsts(Mapping):
     """Resolve model handles only on first use of each graph."""
 
@@ -249,3 +268,11 @@ PROCESSOR_OPTIONS = ("traditional_to_simple", "remove_interjections", "remove_pu
 
 def processor_key(options):
     return "".join("1" if options.get(name, False) else "0" for name in PROCESSOR_OPTIONS)
+
+
+@lru_cache(maxsize=None)
+def get_token_orders(lang, operator):
+    path = files("wetext").joinpath("fsts", lang, operator, "token_orders.json")
+    import json
+
+    return json.loads(path.read_text(encoding="utf-8"))

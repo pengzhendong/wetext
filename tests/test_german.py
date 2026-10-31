@@ -34,16 +34,24 @@ def test_fixture_inventory():
     assert sum(len(expected) for _, expected in MULTIPLE) == 100
 
 
+def contains_candidates(normalizer, source, expected):
+    # Same 1000-candidate ceiling as upstream; avoid expanding once all
+    # required outputs are present, as upstream Swedish tests already do.
+    for nbest in (10, 100, 1000):
+        if set(expected) <= set(normalizer.normalize(source, nbest=nbest)):
+            return True
+    return False
+
+
 @pytest.mark.parametrize("source,expected", SINGLE + ORDINAL)
 def test_nondeterministic_source(source, expected):
     normalizer = Normalizer(lang="de", deterministic=False)
-    assert expected in normalizer.normalize(source, nbest=1000)
+    assert contains_candidates(normalizer, source, [expected])
 
 
 @pytest.mark.parametrize("source,expected", MULTIPLE)
 def test_multiple_candidates(source, expected):
-    outputs = Normalizer(lang="de", deterministic=False).normalize(source, nbest=1000)
-    assert set(expected) <= set(outputs)
+    assert contains_candidates(Normalizer(lang="de", deterministic=False), source, expected)
 
 
 @pytest.mark.parametrize(

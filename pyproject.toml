@@ -36,4 +36,4 @@ BugTracker = "https://github.com/pengzhendong/wetext/issues"
 version = { file = "VERSION" }
 
 [tool.setuptools.package-data]
-wetext = ["fsts/**/*"]
+wetext = ["language_registry.json", "fsts/**/*"]

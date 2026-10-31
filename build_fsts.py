@@ -20,6 +20,8 @@ drifting whenever upstream adds or restructures a rule.
 """
 
 import argparse
+import json
+from importlib import import_module
 from itertools import product
 from pathlib import Path
 
@@ -39,6 +41,7 @@ from itn.korean.inverse_normalizer import InverseNormalizer as KoInverseNormaliz
 from tn.korean.normalizer import Normalizer as KoNormalizer
 
 FST_DIR = Path("wetext/fsts")
+LANGUAGES = json.loads((Path(__file__).parent / "wetext/language_registry.json").read_text(encoding="utf-8"))
 
 
 class _StreamingPrefixMixin:
@@ -238,29 +241,49 @@ def build_de():
     write_graph(inverse.verbalizer, "de/itn/verbalizer.fst")
 
 
+def build_registered(lang):
+    pipeline = LANGUAGES[lang]
+    for operator in ("tn", "itn"):
+        filename = "normalizer" if operator == "tn" else "inverse_normalizer"
+        cls_name = "Normalizer" if operator == "tn" else "InverseNormalizer"
+        cls = getattr(import_module(f"{operator}.{pipeline['module']}.{filename}"), cls_name)
+        modes = [({}, "")]
+        if operator == "tn" and pipeline["tn_deterministic"]:
+            modes += [({"deterministic": False}, "_nondeterministic")]
+        if operator == "itn" and pipeline["itn_cased"]:
+            modes += [({"cased": True}, "_cased")]
+        for options, suffix in modes:
+            normalizer = cls(cache_dir=False, **options)
+            write_graph(normalizer.tagger, f"{lang}/{operator}/tagger{suffix}.fst")
+            write_graph(normalizer.verbalizer, f"{lang}/{operator}/verbalizer{suffix}.fst")
+            schema = FST_DIR / lang / operator / "token_orders.json"
+            schema.write_text(
+                json.dumps(normalizer.token_orders, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+            )
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--lang", choices=("all", "zh", "en", "ja", "ko", "de", "processors"), default="all")
+    parser.add_argument("--lang", choices=("all", *LANGUAGES, "processors"), default="all")
     args = parser.parse_args()
-    if args.lang != "all":
-        for build in {
-            "zh": (build_zh_tn, build_zh_itn),
-            "en": (build_en,),
-            "ja": (build_ja_tn, build_ja_itn),
-            "ko": (build_ko,),
-            "de": (build_de,),
-            "processors": (build_processors,),
-        }[args.lang]:
-            build()
+    builders = {
+        "zh": (build_zh_tn, build_zh_itn),
+        "en": (build_en,),
+        "ja": (build_ja_tn, build_ja_itn),
+        "ko": (build_ko,),
+        "de": (build_de,),
+    }
+    if args.lang == "processors":
+        build_processors()
         return
-    build_processors()
-    build_zh_tn()
-    build_zh_itn()
-    build_en()
-    build_ja_tn()
-    build_ja_itn()
-    build_ko()
-    build_de()
+    if args.lang == "all":
+        build_processors()
+    for lang in LANGUAGES if args.lang == "all" else (args.lang,):
+        if lang in builders:
+            for build in builders[lang]:
+                build()
+        else:
+            build_registered(lang)
 
 
 if __name__ == "__main__":

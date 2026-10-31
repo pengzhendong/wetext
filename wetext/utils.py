@@ -32,6 +32,7 @@ from wetext.fst_utils import (
     transduce_with_spans,
 )
 from wetext.token_parser import TokenParser
+from wetext.languages import model_names
 
 
 @dataclass(frozen=True)
@@ -66,16 +67,9 @@ def _graphs(config, lang):
 @lru_cache(maxsize=32)
 def _cached_graphs(lang, options):
     config = NormalizerConfig(**dict(options))
-    tagger_name = "tagger"
-    if config.enable_0_to_9 and lang in ("zh", "ja") and config.operator == "itn":
-        tagger_name = "tagger_enable_0_to_9"
-    verbalizer_name = "verbalizer_enable_0_to_9" if tagger_name == "tagger_enable_0_to_9" else "verbalizer"
-    if config.remove_erhua and lang == "zh" and config.operator == "tn":
-        verbalizer_name = "verbalizer_remove_erhua"
-
-    if lang == "de" and config.operator == "tn" and not config.deterministic:
-        tagger_name += "_nondeterministic"
-        verbalizer_name += "_nondeterministic"
+    tagger_name, verbalizer_name = model_names(
+        lang, config.operator, config.enable_0_to_9, config.remove_erhua, config.deterministic, config.cased
+    )
     tagger = _read_fst(FST_PATHS[lang][config.operator][tagger_name])
     verbalizer = _read_fst(FST_PATHS[lang][config.operator][verbalizer_name])
     key = processor_key(vars(config))
@@ -197,7 +191,7 @@ def _normalization_candidates(text, lang, operator, tagger, verbalizer, nbest):
     return candidates
 
 
-def get_lang(text: str) -> Literal["en", "zh", "ja", "ko", "de"]:
+def get_lang(text: str) -> Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"]:
     """
     Get the language of the text.
 
@@ -210,6 +204,14 @@ def get_lang(text: str) -> Literal["en", "zh", "ja", "ko", "de"]:
         return "ko"
     if any("\u3040" <= ch <= "\u30ff" for ch in text):
         return "ja"
+    for lang, ranges in (
+        ("hy", ((0x0530, 0x058F),)),
+        ("ar", ((0x0600, 0x06FF), (0x0750, 0x077F), (0x08A0, 0x08FF))),
+        ("hi", ((0x0900, 0x097F),)),
+        ("ru", ((0x0400, 0x052F),)),
+    ):
+        if any(start <= ord(char) <= end for char in text for start, end in ranges):
+            return lang
     contains_chinese = False
     for ch in text:
         if "\u4e00" <= ch <= "\u9fff":
@@ -297,7 +299,11 @@ def should_normalize(text: str, lang: str, operator: Literal["tn", "itn"], remov
     return len(text) > 0
 
 
-def reorder(text: str, lang: Literal["en", "zh", "ja", "ko", "de"], operator: Literal["tn", "itn"]) -> str:
+def reorder(
+    text: str,
+    lang: Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"],
+    operator: Literal["tn", "itn"],
+) -> str:
     """
     Reorder the text.
 
@@ -312,10 +318,11 @@ def reorder(text: str, lang: Literal["en", "zh", "ja", "ko", "de"], operator: Li
 
 def tag(
     text: str,
-    lang: Literal["en", "zh", "ja", "ko", "de"],
+    lang: Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"],
     operator: Literal["tn", "itn"],
     enable_0_to_9: bool = False,
     deterministic: bool = True,
+    cased: bool = False,
 ) -> str:
     """
     Tag the text.
@@ -328,21 +335,18 @@ def tag(
     Returns:
         The tagged text.
     """
-    name = "tagger"
-    if enable_0_to_9 and lang in ("zh", "ja") and operator == "itn":
-        name = "tagger_enable_0_to_9"
-    if lang == "de" and operator == "tn" and not deterministic:
-        name = "tagger_nondeterministic"
+    name, _ = model_names(lang, operator, enable_0_to_9=enable_0_to_9, deterministic=deterministic, cased=cased)
     return FSTS[lang][operator][name](text).strip()
 
 
 def verbalize(
     text: str,
-    lang: Literal["en", "zh", "ja", "ko", "de"],
+    lang: Literal["en", "zh", "ja", "ko", "de", "hy", "ar", "fr", "pt", "vi", "ru", "sv", "es", "hi"],
     operator: Literal["tn", "itn"],
     remove_erhua: bool = False,
     enable_0_to_9: bool = False,
     deterministic: bool = True,
+    cased: bool = False,
 ) -> str:
     """
     Verbalize the text.
@@ -355,13 +359,7 @@ def verbalize(
     Returns:
         The verbalized text.
     """
-    name = "verbalizer"
-    if remove_erhua and lang == "zh" and operator == "tn":
-        name = "verbalizer_remove_erhua"
-    if enable_0_to_9 and lang in ("zh", "ja") and operator == "itn":
-        name = "verbalizer_enable_0_to_9"
-    if lang == "de" and operator == "tn" and not deterministic:
-        name = "verbalizer_nondeterministic"
+    _, name = model_names(lang, operator, enable_0_to_9, remove_erhua, deterministic, cased)
     output = FSTS[lang][operator][name](text)
     return output if lang == "ko" else output.strip()
 
@@ -388,10 +386,16 @@ def normalize(text: str, config: Optional[NormalizerConfig] = None, nbest: int =
     if nbest == 1:
         output = preprocess(prepared, config.traditional_to_simple)
         if should_normalize(output, lang, config.operator, config.remove_erhua):
-            output = tag(output, lang, config.operator, config.enable_0_to_9, config.deterministic)
+            output = tag(output, lang, config.operator, config.enable_0_to_9, config.deterministic, config.cased)
             output = reorder(output, lang, config.operator)
             output = verbalize(
-                output, lang, config.operator, config.remove_erhua, config.enable_0_to_9, config.deterministic
+                output,
+                lang,
+                config.operator,
+                config.remove_erhua,
+                config.enable_0_to_9,
+                config.deterministic,
+                config.cased,
             )
         return postprocess(
             output,
